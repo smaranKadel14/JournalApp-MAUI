@@ -28,6 +28,8 @@ namespace JournalApp
 
             // ✅ 1) SQLite database file path (inside app storage)
             var dbPath = Path.Combine(FileSystem.AppDataDirectory, "journal.db");
+            Console.WriteLine("DB PATH = " + dbPath);
+
 
             // ✅ 2) Register EF Core DbContext to use SQLite
             builder.Services.AddDbContext<AppDbContext>(options =>
