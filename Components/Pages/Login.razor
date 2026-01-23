@@ -1,5 +1,12 @@
 ﻿@page "/login"
-@using JournalApp.Models
+
+@* 
+    LOGIN PAGE (SQLite + EF Core)
+    - Purpose: Authenticate a user using username + password
+    - Storage: Uses EF Core DbContext (AppDbContext) which is configured to use SQLite (journal.db)
+    - If credentials are valid -> redirect to Dashboard
+*@
+
 @using JournalApp.Data
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext DB
@@ -7,19 +14,25 @@
 
 <div class="login-container">
     <div class="login-card">
+        <!-- App branding -->
         <h1 class="brand-title">Journal</h1>
         <p class="brand-subtitle">Your Personal Space for Thoughts</p>
 
+        <!-- Username input -->
         <div class="input-group">
             <label>Username</label>
+            @* @bind stores the typed value into the 'username' C# variable *@
             <input type="text" placeholder="Enter your username" @bind="username" />
         </div>
 
+        <!-- Password input -->
         <div class="input-group">
             <label>Password</label>
+            @* Password type hides input characters *@
             <input type="password" placeholder="Enter your password" @bind="password" />
         </div>
 
+        <!-- Error message area (only shown when errorMessage has content) -->
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <p style="color: #e66b7a; font-size: 0.85rem; margin-top: -10px; margin-bottom: 10px; text-align: left;">
@@ -27,24 +40,37 @@
             </p>
         }
 
+        <!-- Login button triggers HandleLogin() -->
         <button class="primary-btn" @onclick="HandleLogin">Login</button>
 
+        <!-- Navigate to Register page -->
         <p class="footer-text">
-            Don't have an account? <a href="/signup">Register here</a>
+            Don't have an account? <a href="/register">Register here</a>
         </p>
     </div>
 </div>
 
 @code {
+    // Variables bound to the input fields
     private string username = "";
     private string password = "";
+
+    // Shows validation or database errors to the user
     private string errorMessage = "";
 
+    /// <summary>
+    /// Handles login logic:
+    /// 1) Validate inputs
+    /// 2) Query SQLite (via EF Core) to find matching user
+    /// 3) If found -> redirect to dashboard
+    /// </summary>
     private async Task HandleLogin()
     {
+        // Reset previous errors
         errorMessage = "";
 
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        // 1) Basic input validation
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
             errorMessage = "Please enter both username and password.";
             return;
@@ -52,23 +78,27 @@
 
         try
         {
-            // Query PostgreSQL for a user matching these credentials
+            // 2) Check if a user exists with given credentials
+            // NOTE: This works the same in SQLite and PostgreSQL; EF Core handles database provider.
             var user = await DB.Users
                 .FirstOrDefaultAsync(u => u.Username == username && u.Password == password);
 
+            // 3) If credentials match, redirect to dashboard page
             if (user != null)
             {
-                // TODO: Store 'user.Id' in a session service here
-                Nav.NavigateTo("/dashboard"); // Go to your main dashboard
+                // In a real system, you would store user session info here.
+                Nav.NavigateTo("/dashboard");
             }
             else
             {
+                // If no record matches, show error
                 errorMessage = "Invalid username or password.";
             }
         }
         catch (Exception ex)
         {
-            errorMessage = "Connection error. Please check if PostgreSQL is running.";
+            // Any unexpected DB errors or runtime errors are shown here
+            errorMessage = "Something went wrong while logging in.";
             Console.WriteLine(ex.Message);
         }
     }
