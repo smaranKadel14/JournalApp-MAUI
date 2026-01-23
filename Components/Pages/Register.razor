@@ -1,4 +1,13 @@
 ﻿@page "/signup"
+
+@*
+    REGISTER PAGE (SQLite + EF Core)
+    - Purpose: Create a new user account
+    - Validation: required fields + password match + duplicate email check
+    - Storage: Saves new user into SQLite database using AppDbContext
+    - After success -> redirect to Login page
+*@
+
 @using JournalApp.Models
 @using JournalApp.Data
 @using Microsoft.EntityFrameworkCore
@@ -7,35 +16,43 @@
 
 <div class="login-container">
     <div class="login-card">
+        <!-- Page Title -->
         <h2 class="welcome-text">Welcome to Journal Application</h2>
 
+        <!-- Username input -->
         <div class="input-group">
             <label>Username</label>
-            <input type="text" @bind="username" />
+            <input type="text" placeholder="Enter username" @bind="username" />
         </div>
 
+        <!-- Email input -->
         <div class="input-group">
             <label>Email</label>
-            <input type="email" @bind="email" />
+            <input type="email" placeholder="Enter email" @bind="email" />
         </div>
 
+        <!-- Password input -->
         <div class="input-group">
             <label>Password</label>
-            <input type="password" @bind="password" />
+            <input type="password" placeholder="Enter password" @bind="password" />
         </div>
 
+        <!-- Confirm Password -->
         <div class="input-group">
             <label>Retype Password</label>
-            <input type="password" @bind="confirmPassword" />
+            <input type="password" placeholder="Confirm password" @bind="confirmPassword" />
         </div>
 
+        <!-- Error message display -->
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <p style="color:red; font-size: 0.8rem; margin-bottom: 10px;">@errorMessage</p>
         }
 
-        <button class="primary-btn" @onclick="HandleSignUp">Sign up</button>
+        <!-- Register button triggers HandleRegister() -->
+        <button class="primary-btn" @onclick="HandleRegister">Sign up</button>
 
+        <!-- Link back to login -->
         <p class="footer-text">
             Already have an account? <a href="/login">Login here</a>
         </p>
@@ -43,23 +60,36 @@
 </div>
 
 @code {
+    // Bound input values
     private string username = "";
     private string email = "";
     private string password = "";
     private string confirmPassword = "";
+
+    // Error message shown in UI when validation fails or DB has issues
     private string errorMessage = "";
 
-    private async Task HandleSignUp()
+    /// <summary>
+    /// Handles user registration:
+    /// 1) Validate inputs
+    /// 2) Check if email already exists
+    /// 3) Insert user into SQLite database
+    /// 4) Redirect to login
+    /// </summary>
+    private async Task HandleRegister()
     {
         errorMessage = "";
 
-        // 1. Basic Validation
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        // 1) Check required fields
+        if (string.IsNullOrWhiteSpace(username) ||
+            string.IsNullOrWhiteSpace(email) ||
+            string.IsNullOrWhiteSpace(password))
         {
             errorMessage = "Please fill in all fields.";
             return;
         }
 
+        // 2) Check password confirmation
         if (password != confirmPassword)
         {
             errorMessage = "Passwords do not match!";
@@ -68,7 +98,7 @@
 
         try
         {
-            // 2. Check if user exists
+            // 3) Ensure email is unique (prevents duplicates)
             var userExists = await DB.Users.AnyAsync(u => u.Email == email);
             if (userExists)
             {
@@ -76,24 +106,26 @@
                 return;
             }
 
-            // 3. Create User object
+            // 4) Create User object to save
+            // NOTE: For a real system we must hash passwords. For coursework demo, plain text is acceptable.
             var newUser = new User
             {
                 Username = username,
                 Email = email,
-                Password = password // In production, hash this!
+                Password = password
             };
 
-            // 4. Save to PostgreSQL
+            // 5) Add and save to SQLite (journal.db)
             DB.Users.Add(newUser);
             await DB.SaveChangesAsync();
 
-            // 5. Success! Redirect to login
+            // 6) Redirect after successful registration
             Nav.NavigateTo("/login");
         }
         catch (Exception ex)
         {
-            errorMessage = "Database Error: " + ex.Message;
+            // Handle any unexpected database/runtime exceptions
+            errorMessage = "Database error: " + ex.Message;
         }
     }
 }

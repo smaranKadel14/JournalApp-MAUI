@@ -1,14 +1,16 @@
-﻿.entry-container {
+﻿/* Container */
+.entry-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 40px 20px;
 }
 
+/* Header: Back | Title | Save */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 18px;
 }
 
 .back-link {
@@ -29,7 +31,37 @@
     cursor: pointer;
 }
 
-/* Form Styling */
+    .save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+/* Small meta row for CreatedAt / UpdatedAt */
+.meta-row {
+    display: flex;
+    justify-content: flex-start;
+    gap: 25px;
+    margin-bottom: 25px;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.meta-item {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.meta-label {
+    font-weight: 700;
+    color: #666;
+}
+
+.meta-value {
+    color: #777;
+}
+
+/* Title input */
 .title-input {
     width: 100%;
     font-size: 2rem;
@@ -40,17 +72,21 @@
     padding: 10px 0;
 }
 
+/* Row layout */
 .row {
     display: flex;
     gap: 40px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
 }
 
+/* Field block */
 .field {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-bottom: 22px;
 }
 
     .field label {
@@ -58,10 +94,21 @@
         color: #555;
     }
 
-/* Mood Selection Buttons */
+/* Inputs */
+.input {
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #fafafa;
+    outline: none;
+    font-family: inherit;
+}
+
+/* Primary mood group buttons */
 .mood-selector {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .mood-opt {
@@ -70,31 +117,167 @@
     border-radius: 10px;
     background: white;
     cursor: pointer;
+    transition: 0.15s ease;
 }
 
     .mood-opt:hover {
         background: #f8f9fa;
     }
 
-/* Tag Cloud */
+    .mood-opt.selected {
+        border-color: #e66b7a;
+        background: rgba(230, 107, 122, 0.12);
+    }
+
+/* Mood categories (pill buttons) */
+.mood-categories {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pill {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 7px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.15s ease;
+}
+
+    .pill:hover {
+        background: #f8f9fa;
+    }
+
+    .pill.selected {
+        border-color: #e66b7a;
+        background: #e66b7a;
+        color: #fff;
+    }
+
+/* Secondary group */
+.secondary-group {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed #eee;
+}
+
+.secondary-title {
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+/* Hint text */
+.hint {
+    color: #777;
+    font-size: 0.85rem;
+}
+
+/* Tag cloud */
 .tag-cloud {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
 
-    .tag-cloud span {
-        background: #f1f3f5;
-        padding: 5px 15px;
-        border-radius: 15px;
-        font-size: 0.85rem;
-        color: #666;
+.tag-btn {
+    background: #f1f3f5;
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    color: #666;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+    .tag-btn.selected {
+        background: #e66b7a;
+        color: #fff;
     }
 
-/* Main Text Area */
-textarea {
+/* Custom tag row */
+.tag-add {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.tag-add-btn {
+    background: #e66b7a;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+/* Selected tags display */
+.selected-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.selected-tag {
+    background: rgba(230, 107, 122, 0.12);
+    border: 1px solid rgba(230, 107, 122, 0.35);
+    color: #444;
+    padding: 6px 10px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tag-remove {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    color: #e66b7a;
+}
+
+/* Markdown toolbar */
+.editor-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.tool-btn {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 7px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+    .tool-btn:hover {
+        background: #f8f9fa;
+    }
+
+    .tool-btn.selected {
+        border-color: #e66b7a;
+        background: rgba(230, 107, 122, 0.12);
+    }
+
+.spacer {
+    flex: 1;
+}
+
+/* Textarea styling */
+.content-area {
     width: 100%;
-    height: 300px;
+    height: 320px;
     border: 1px solid #eee;
     border-radius: 15px;
     padding: 20px;
@@ -102,4 +285,34 @@ textarea {
     resize: none;
     outline: none;
     font-family: inherit;
+}
+
+/* Preview box */
+.preview {
+    margin-top: 12px;
+    border: 1px solid #eee;
+    border-radius: 15px;
+    padding: 18px;
+    background: #fff;
+    color: #333;
+}
+
+/* Error box */
+.error-box {
+    margin-top: 15px;
+    background: rgba(230, 107, 122, 0.12);
+    border: 1px solid rgba(230, 107, 122, 0.35);
+    color: #a63846;
+    padding: 12px 14px;
+    border-radius: 12px;
+}
+
+/* Accessibility helper */
+.sr-only {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
