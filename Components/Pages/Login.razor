@@ -1,0 +1,75 @@
+﻿@page "/login"
+@using JournalApp.Models
+@using JournalApp.Data
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext DB
+@inject NavigationManager Nav
+
+<div class="login-container">
+    <div class="login-card">
+        <h1 class="brand-title">Journal</h1>
+        <p class="brand-subtitle">Your Personal Space for Thoughts</p>
+
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" placeholder="Enter your username" @bind="username" />
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" placeholder="Enter your password" @bind="password" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p style="color: #e66b7a; font-size: 0.85rem; margin-top: -10px; margin-bottom: 10px; text-align: left;">
+                @errorMessage
+            </p>
+        }
+
+        <button class="primary-btn" @onclick="HandleLogin">Login</button>
+
+        <p class="footer-text">
+            Don't have an account? <a href="/signup">Register here</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private string errorMessage = "";
+
+    private async Task HandleLogin()
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        {
+            errorMessage = "Please enter both username and password.";
+            return;
+        }
+
+        try
+        {
+            // Query PostgreSQL for a user matching these credentials
+            var user = await DB.Users
+                .FirstOrDefaultAsync(u => u.Username == username && u.Password == password);
+
+            if (user != null)
+            {
+                // TODO: Store 'user.Id' in a session service here
+                Nav.NavigateTo("/dashboard"); // Go to your main dashboard
+            }
+            else
+            {
+                errorMessage = "Invalid username or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Connection error. Please check if PostgreSQL is running.";
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

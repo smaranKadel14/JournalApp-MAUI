@@ -1,0 +1,40 @@
+﻿@page "/new-entry"
+
+<div class="entry-container">
+    <div class="header">
+        <button class="back-link">Back</button>
+        <h1>New Entry</h1>
+        <button class="save-btn">Save</button>
+    </div>
+
+    <div class="form-body">
+        <input type="text" class="title-input" placeholder="Enter title..." />
+
+        <div class="row">
+            <div class="field">
+                <label>Date</label>
+                <input type="date" />
+            </div>
+            <div class="field">
+                <label>Mood</label>
+                <div class="mood-selector">
+                    <button class="mood-opt">Positive</button>
+                    <button class="mood-opt">Neutral</button>
+                    <button class="mood-opt">Negative</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Tags</label>
+            <div class="tag-cloud">
+                <span>Work</span> <span>Health</span> <span>Study</span> <span>Personal</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Content</label>
+            <textarea placeholder="Write your thoughts here..."></textarea>
+        </div>
+    </div>
+</div>

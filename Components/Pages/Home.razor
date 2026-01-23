@@ -1,0 +1,40 @@
+﻿@page "/"
+@using JournalApp.Services
+@inject UserService UserSession
+@inject NavigationManager Nav
+
+<div class="home-container">
+    <div class="header-section">
+        @if (UserSession.CurrentUserId != 0)
+        {
+            <h1>Welcome back, @UserSession.CurrentUsername!</h1>
+            <p @onclick='() => Nav.NavigateTo("/add-entry")' style="cursor:pointer; color: #e66b7a; text-decoration: underline;">
+                What's on your mind today?
+            </p>
+        }
+        else
+        {
+            <h1>Welcome to your Journal</h1>
+            <p @onclick='() => Nav.NavigateTo("/login")' style="cursor:pointer; color: #e66b7a; text-decoration: underline;">
+                Please login to start writing.
+            </p>
+        }
+    </div>
+
+    <div class="action-cards">
+        @if (UserSession.CurrentUserId != 0)
+        {
+            <div class="card" @onclick='() => Nav.NavigateTo("/add-entry")'>
+                <div class="icon">✍️</div>
+                <h3>New Entry</h3>
+            </div>
+        }
+        else
+        {
+            <div class="card" @onclick='() => Nav.NavigateTo("/login")'>
+                <div class="icon">🔑</div>
+                <h3>Login</h3>
+            </div>
+        }
+    </div>
+</div>

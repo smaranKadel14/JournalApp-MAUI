@@ -1,0 +1,39 @@
+﻿@page "/dashboard"
+
+<div class="dashboard-wrapper">
+    <header class="dash-header">
+        <h1>Dashboard</h1>
+        <span class="date-label">November 29, 2025</span>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p>Current Streak</p>
+            <h3>7 Days</h3>
+        </div>
+        <div class="stat-card">
+            <p>Most Frequent Mood</p>
+            <h3>Positive</h3>
+        </div>
+        <div class="stat-card">
+            <p>Entries this Week</p>
+            <h3>4</h3>
+        </div>
+    </div>
+
+    <section class="recent-entries">
+        <div class="section-header">
+            <h2>Recent Entries</h2>
+            <button class="add-btn" @onclick="NavigateToNewEntry">+ Add Today Entry</button>
+        </div>
+        <div class="entry-list">
+            <div class="entry-item"><span>December 20</span> <span class="mood positive">Positive</span></div>
+            <div class="entry-item"><span>December 19</span> <span class="mood positive">Positive</span></div>
+            <div class="entry-item"><span>December 18</span> <span class="mood negative">Negative</span></div>
+        </div>
+    </section>
+</div>
+
+@code {
+    private void NavigateToNewEntry() { /* Navigation Logic */ }
+}

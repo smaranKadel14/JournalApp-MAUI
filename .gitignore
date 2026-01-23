@@ -1,0 +1,17 @@
+﻿# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+
+# Rider/JetBrains (just in case)
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

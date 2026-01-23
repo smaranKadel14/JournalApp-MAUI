@@ -1,0 +1,99 @@
+﻿@page "/signup"
+@using JournalApp.Models
+@using JournalApp.Data
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext DB
+@inject NavigationManager Nav
+
+<div class="login-container">
+    <div class="login-card">
+        <h2 class="welcome-text">Welcome to Journal Application</h2>
+
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" @bind="username" />
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" @bind="email" />
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" @bind="password" />
+        </div>
+
+        <div class="input-group">
+            <label>Retype Password</label>
+            <input type="password" @bind="confirmPassword" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p style="color:red; font-size: 0.8rem; margin-bottom: 10px;">@errorMessage</p>
+        }
+
+        <button class="primary-btn" @onclick="HandleSignUp">Sign up</button>
+
+        <p class="footer-text">
+            Already have an account? <a href="/login">Login here</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string email = "";
+    private string password = "";
+    private string confirmPassword = "";
+    private string errorMessage = "";
+
+    private async Task HandleSignUp()
+    {
+        errorMessage = "";
+
+        // 1. Basic Validation
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        {
+            errorMessage = "Please fill in all fields.";
+            return;
+        }
+
+        if (password != confirmPassword)
+        {
+            errorMessage = "Passwords do not match!";
+            return;
+        }
+
+        try
+        {
+            // 2. Check if user exists
+            var userExists = await DB.Users.AnyAsync(u => u.Email == email);
+            if (userExists)
+            {
+                errorMessage = "Email already registered.";
+                return;
+            }
+
+            // 3. Create User object
+            var newUser = new User
+            {
+                Username = username,
+                Email = email,
+                Password = password // In production, hash this!
+            };
+
+            // 4. Save to PostgreSQL
+            DB.Users.Add(newUser);
+            await DB.SaveChangesAsync();
+
+            // 5. Success! Redirect to login
+            Nav.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Database Error: " + ex.Message;
+        }
+    }
+}
