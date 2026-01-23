@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore; 
-using JournalApp.Data;          
-using JournalApp.Models;           
+﻿using JournalApp.Data;
+using JournalApp.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Storage;
+using System.IO;
 
 namespace JournalApp
 {
@@ -10,6 +12,7 @@ namespace JournalApp
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
+
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
@@ -19,18 +22,30 @@ namespace JournalApp
 
             builder.Services.AddMauiBlazorWebView();
 
-            var connectionString = "Host=localhost;Port=5432;Database=JournalDB;Username=postgres;Password=test123";
-
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString));
-
 #if DEBUG
-            
-            builder.Services.AddSingleton<JournalApp.Services.UserService>();
             builder.Logging.AddDebug();
 #endif
 
-            return builder.Build();
+            // ✅ 1) SQLite database file path (inside app storage)
+            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "journal.db");
+
+            // ✅ 2) Register EF Core DbContext to use SQLite
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
+
+            // Your existing service
+            builder.Services.AddSingleton<UserService>();
+
+            var app = builder.Build();
+
+            // ✅ 3) Create database + tables automatically (first run)
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.Database.EnsureCreated();
+            }
+
+            return app;
         }
     }
 }
