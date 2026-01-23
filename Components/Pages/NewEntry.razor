@@ -1,40 +1,178 @@
 ﻿@page "/new-entry"
 
+@using JournalApp.Data
+@using JournalApp.Models
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext DB
+@inject NavigationManager Nav
+@inject JournalApp.Services.UserService UserService
+
 <div class="entry-container">
     <div class="header">
-        <button class="back-link">Back</button>
+        <!-- Back button -->
+        <button class="back-link" @onclick="GoBack">Back</button>
+
         <h1>New Entry</h1>
-        <button class="save-btn">Save</button>
+
+        <!-- Save button -->
+        <button class="save-btn" @onclick="SaveEntry">Save</button>
     </div>
 
     <div class="form-body">
-        <input type="text" class="title-input" placeholder="Enter title..." />
+
+        <!-- Title -->
+        <input type="text"
+               class="title-input"
+               placeholder="Enter title..."
+               @bind="Title" />
 
         <div class="row">
             <div class="field">
                 <label>Date</label>
-                <input type="date" />
+                <input type="date" @bind="EntryDate" />
             </div>
+
             <div class="field">
                 <label>Mood</label>
                 <div class="mood-selector">
-                    <button class="mood-opt">Positive</button>
-                    <button class="mood-opt">Neutral</button>
-                    <button class="mood-opt">Negative</button>
+                    <button type="button"
+                            class="mood-opt @(Mood == "Positive" ? "active" : "")"
+                            @onclick="@(() => SetMood("Positive"))">
+                        Positive
+                    </button>
+
+                    <button type="button"
+                            class="mood-opt @(Mood == "Neutral" ? "active" : "")"
+                            @onclick="@(() => SetMood("Neutral"))">
+                        Neutral
+                    </button>
+
+                    <button type="button"
+                            class="mood-opt @(Mood == "Negative" ? "active" : "")"
+                            @onclick="@(() => SetMood("Negative"))">
+                        Negative
+                    </button>
                 </div>
             </div>
         </div>
 
+        <!-- Tags -->
         <div class="field">
             <label>Tags</label>
             <div class="tag-cloud">
-                <span>Work</span> <span>Health</span> <span>Study</span> <span>Personal</span>
+                @foreach (var tag in PredefinedTags)
+                {
+                    <span class="@(SelectedTags.Contains(tag) ? "tag active" : "tag")"
+                          @onclick="@(() => ToggleTag(tag))">
+                        @tag
+                    </span>
+                }
             </div>
         </div>
 
+        <!-- Content -->
         <div class="field">
             <label>Content</label>
-            <textarea placeholder="Write your thoughts here..."></textarea>
+            <textarea placeholder="Write your thoughts here..." @bind="Content"></textarea>
         </div>
+
+        <!-- Message area -->
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <p style="margin-top:10px; color:@(IsError ? "red" : "green")">
+                @Message
+            </p>
+        }
     </div>
 </div>
+
+@code {
+    // Form values
+    private string Title { get; set; } = "";
+    private DateTime EntryDate { get; set; } = DateTime.Today;
+    private string Mood { get; set; } = "Neutral";
+    private string Content { get; set; } = "";
+
+    // Tags (UI)
+    private List<string> PredefinedTags { get; set; } = new()
+    {
+        "Work", "Health", "Study", "Personal", "Family", "Friends", "Career"
+    };
+
+    private HashSet<string> SelectedTags { get; set; } = new();
+
+    // Feedback message
+    private string Message { get; set; } = "";
+    private bool IsError { get; set; } = false;
+
+    private void GoBack()
+    {
+        // You can change this to "/dashboard" if you want
+        Nav.NavigateTo("/dashboard");
+    }
+
+    private void SetMood(string mood) => Mood = mood;
+
+    private void ToggleTag(string tag)
+    {
+        if (!SelectedTags.Add(tag))
+            SelectedTags.Remove(tag);
+    }
+
+    private async Task SaveEntry()
+    {
+        Message = "";
+        IsError = false;
+
+        // ✅ Must be logged in because JournalEntry requires UserId
+        if (!UserService.IsLoggedIn || UserService.CurrentUserId is null)
+        {
+            Message = "Please login first before creating an entry.";
+            IsError = true;
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        // Basic validation
+        if (string.IsNullOrWhiteSpace(Title))
+        {
+            Message = "Title is required.";
+            IsError = true;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Content))
+        {
+            Message = "Content is required.";
+            IsError = true;
+            return;
+        }
+
+        try
+        {
+            var entry = new JournalEntry
+            {
+                Title = Title.Trim(),
+                Content = Content.Trim(),
+                Mood = Mood,
+                CreatedAt = DateTime.UtcNow,
+                UserId = UserService.CurrentUserId.Value
+            };
+
+            // ✅ Save to SQLite
+            DB.JournalEntries.Add(entry);
+            await DB.SaveChangesAsync();
+
+            Message = "Entry saved successfully!";
+            IsError = false;
+
+            // Redirect after save
+            Nav.NavigateTo("/dashboard");
+        }
+        catch (Exception ex)
+        {
+            Message = "Error saving entry: " + ex.Message;
+            IsError = true;
+        }
+    }
+}

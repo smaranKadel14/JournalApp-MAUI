@@ -9,8 +9,12 @@
 
 @using JournalApp.Data
 @using Microsoft.EntityFrameworkCore
+@using JournalApp.Services
+@inject UserService UserSession
 @inject AppDbContext DB
 @inject NavigationManager Nav
+
+
 
 <div class="login-container">
     <div class="login-card">
@@ -86,7 +90,8 @@
             // 3) If credentials match, redirect to dashboard page
             if (user != null)
             {
-                // In a real system, you would store user session info here.
+                UserSession.SetCurrentUser(user.Id, user.Username); // save session info (id + username)
+                                                                    
                 Nav.NavigateTo("/dashboard");
             }
             else

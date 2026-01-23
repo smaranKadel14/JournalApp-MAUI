@@ -1,4 +1,5 @@
 ﻿@page "/dashboard"
+@inject NavigationManager Nav
 
 <div class="dashboard-wrapper">
     <header class="dash-header">
@@ -24,8 +25,13 @@
     <section class="recent-entries">
         <div class="section-header">
             <h2>Recent Entries</h2>
-            <button class="add-btn" @onclick="NavigateToNewEntry">+ Add Today Entry</button>
+
+            <!-- When clicked, go to the New Entry page -->
+            <button class="add-btn" @onclick="NavigateToNewEntry">
+                + Add Today Entry
+            </button>
         </div>
+
         <div class="entry-list">
             <div class="entry-item"><span>December 20</span> <span class="mood positive">Positive</span></div>
             <div class="entry-item"><span>December 19</span> <span class="mood positive">Positive</span></div>
@@ -35,5 +41,9 @@
 </div>
 
 @code {
-    private void NavigateToNewEntry() { /* Navigation Logic */ }
+    // Navigates to the page that has: @page "/new-entry"
+    private void NavigateToNewEntry()
+    {
+        Nav.NavigateTo("/new-entry");
+    }
 }

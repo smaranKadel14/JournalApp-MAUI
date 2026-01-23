@@ -1,20 +1,26 @@
-﻿<div class="nav-scrollable">
+﻿@using JournalApp.Services
+@inject UserService UserSession
+@inject NavigationManager Nav
+
+<div class="nav-scrollable">
     <nav class="flex-column">
-        @* Always show Home *@
+
+        <!-- Always show Home -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
             </NavLink>
         </div>
 
-        @if (UserSession.CurrentUserId == 0)
+        @if (!UserSession.IsLoggedIn)
         {
-            @* Show these only if NOT logged in *@
+            <!-- Show these only if NOT logged in -->
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="login">
                     <span class="bi bi-person-fill" aria-hidden="true"></span> Login
                 </NavLink>
             </div>
+
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="signup">
                     <span class="bi bi-person-plus-fill" aria-hidden="true"></span> Signup
@@ -23,30 +29,30 @@
         }
         else
         {
-            @* Show these only if logged in *@
+            <!-- Show these only if logged in -->
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="add-entry">
+                <NavLink class="nav-link" href="new-entry">
                     <span class="bi bi-pencil-square" aria-hidden="true"></span> New Entry
                 </NavLink>
             </div>
+
             <div class="nav-item px-3">
-                <NavLink class="nav-link" style="cursor:pointer" @onclick="Logout">
+                <!-- Use a button for logout click -->
+                <button class="nav-link btn btn-link p-0" style="cursor:pointer" @onclick="Logout">
                     <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
-                </NavLink>
+                </button>
             </div>
         }
     </nav>
 </div>
 
 @code {
-    @using JournalApp.Services
-    @inject UserService UserSession
-    @inject NavigationManager Nav
-
     private void Logout()
     {
-        UserSession.CurrentUserId = 0;
-        UserSession.CurrentUsername = "";
-        Nav.NavigateTo("/");
+        // Clear the session properly
+        UserSession.Logout();
+
+        // Redirect to login page (or home if you want)
+        Nav.NavigateTo("/login", forceLoad: false);
     }
 }
