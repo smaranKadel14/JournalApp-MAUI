@@ -1,144 +1,118 @@
 ﻿@page "/dashboard"
 
-@using JournalApp.Models
-@using JournalApp.Data
+@* Dashboard:
+   - Loads current user's entries
+   - Shows stats + recent entries
+   - Button changes: Add Today Entry -> Edit Today Entry if today's entry exists *@
+
 @using Microsoft.EntityFrameworkCore
+@using JournalApp.Models
 
-@inject AppDbContext DB
-@inject JournalApp.Services.UserService UserSession
 @inject NavigationManager Nav
+@inject JournalApp.Services.UserService UserSession
+@inject JournalApp.Data.AppDbContext DB
 
-<div class="dash-page">
-    <!-- Top header row: title + date + primary action -->
-    <div class="dash-top">
-        <div>
-            <h1 class="dash-title">Dashboard</h1>
-            <div class="dash-subtitle">A quick overview of your journaling</div>
+<div class="dashboard-wrapper">
+
+    <!-- Top header with title, date, and main action button -->
+    <header class="dash-header">
+        <div class="dash-title">
+            <h1>Dashboard</h1>
+            <p class="subtitle">A quick overview of your journaling</p>
         </div>
 
-        <div class="dash-top-right">
-            <!-- Show today's date (dynamic, not hardcoded) -->
-            <span class="date-label">@DateTime.Now.ToString("MMMM dd, yyyy")</span>
+        <div class="dash-actions">
+            <span class="date-label">@DateTime.Today.ToString("MMMM dd, yyyy")</span>
 
-            <!-- Main call-to-action -->
-            <button class="add-btn" @onclick="NavigateToNewEntry">
-                + Add Today Entry
+            <!-- Button changes based on whether today's entry exists -->
+            <button class="add-btn" @onclick="GoToTodayEntry">
+                @(TodayEntryId.HasValue ? "Edit Today Entry" : "+ Add Today Entry")
             </button>
+        </div>
+    </header>
+
+    <!-- Stats cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p>Current Streak</p>
+            <div class="stat-big">
+                <span class="stat-number">@CurrentStreak</span>
+                <span class="stat-unit">days</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <p>Most Frequent Mood</p>
+            <h3>@MostFrequentMood</h3>
+        </div>
+
+        <div class="stat-card">
+            <p>Entries this Week</p>
+            <h3>@EntriesThisWeek</h3>
         </div>
     </div>
 
-    @* If user is not logged in, show a friendly message *@
-    @if (!UserSession.IsLoggedIn)
-    {
-        <div class="callout">
-            <div class="callout-title">You are not logged in</div>
-            <div class="callout-text">
-                Login first to see your dashboard and saved entries.
-            </div>
-
-            <button class="primary-btn" @onclick="@(() => Nav.NavigateTo("/login"))">
-                Go to Login
-            </button>
+    <!-- Recent Entries -->
+    <section class="recent-entries">
+        <div class="section-header">
+            <h2>Recent Entries</h2>
         </div>
-    }
-    else
-    {
-        @* Loading state while we fetch from SQLite *@
+
         @if (IsLoading)
         {
-            <div class="loading">Loading your dashboard...</div>
+            <p>Loading...</p>
+        }
+        else if (RecentEntries.Count == 0)
+        {
+            <div class="empty-state">
+                <p>No entries yet.</p>
+                <button class="ghost-btn" @onclick="@(() => Nav.NavigateTo("/new-entry"))">Write your first entry</button>
+            </div>
         }
         else
         {
-            <!-- Stats cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Current Streak</div>
-                    <div class="stat-value">@CurrentStreakDays</div>
-                    <div class="stat-suffix">days</div>
-                </div>
+            <div class="entry-list">
+                @foreach (var e in RecentEntries)
+                {
+                    <!-- Clicking an entry opens edit mode -->
+                    <div class="entry-item" @onclick="@(() => Nav.NavigateTo($"/new-entry/{e.Id}"))">
+                        <div class="entry-left">
+                            <div class="entry-date">@e.EntryDate.ToString("MMMM dd")</div>
+                            <div class="entry-title">@e.Title</div>
+                            <div class="entry-snippet">@GetSnippet(e.Content)</div>
+                        </div>
 
-                <div class="stat-card">
-                    <div class="stat-label">Most Frequent Mood</div>
-                    <div class="stat-value">@MostFrequentMood</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-label">Entries this Week</div>
-                    <div class="stat-value">@EntriesThisWeek</div>
-                </div>
+                        <div class="entry-right">
+                            <span class="mood-pill @MoodClass(e.Mood)">@e.Mood</span>
+                        </div>
+                    </div>
+                }
             </div>
-
-            <!-- Recent entries list -->
-            <section class="recent">
-                <div class="section-header">
-                    <h2 class="section-title">Recent Entries</h2>
-                </div>
-
-                @* Empty state if user has no entries *@
-                @if (RecentEntries.Count == 0)
-                {
-                    <div class="empty">
-                        <div class="empty-title">No entries yet</div>
-                        <div class="empty-text">Create your first entry to see it here.</div>
-                        <button class="primary-btn" @onclick="NavigateToNewEntry">Create Entry</button>
-                    </div>
-                }
-                else
-                {
-                    <div class="entry-list">
-                        @foreach (var entry in RecentEntries)
-                        {
-                            <div class="entry-item">
-                                <div class="entry-left">
-                                    <!-- Use local time for display -->
-                                    <div class="entry-date">
-                                        @entry.CreatedAt.ToLocalTime().ToString("MMMM dd")
-                                    </div>
-
-                                    <!-- Show title (fallback if empty) -->
-                                    <div class="entry-title">
-                                        @(string.IsNullOrWhiteSpace(entry.Title) ? "Untitled" : entry.Title)
-                                    </div>
-
-                                    <!-- Short preview of content to make UI feel “real” -->
-                                    <div class="entry-preview">
-                                        @GetPreview(entry.Content)
-                                    </div>
-                                </div>
-
-                                <div class="entry-right">
-                                    <!-- Mood pill (color changes by mood) -->
-                                    <span class="mood-pill @MoodClass(entry.Mood)">
-                                        @entry.Mood
-                                    </span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            </section>
         }
-    }
+    </section>
 </div>
 
 @code {
-    // UI state
-    private bool IsLoading = true;
+    // Tracks loading state so UI can show "Loading..."
+    private bool IsLoading { get; set; } = true;
 
-    // Dashboard computed values
-    private int CurrentStreakDays = 0;
-    private string MostFrequentMood = "-";
-    private int EntriesThisWeek = 0;
+    // Holds the entry Id for today's entry (if it exists)
+    private int? TodayEntryId { get; set; } = null;
 
-    // What we show in the UI
-    private List<JournalEntry> RecentEntries = new();
+    // Dashboard data
+    private List<JournalEntry> RecentEntries { get; set; } = new();
+    private int CurrentStreak { get; set; } = 0;
+    private int EntriesThisWeek { get; set; } = 0;
+    private string MostFrequentMood { get; set; } = "—";
 
     protected override async Task OnInitializedAsync()
     {
-        // If not logged in, do nothing (UI shows a callout)
-        if (!UserSession.IsLoggedIn)
+        // If user is not logged in, send them to login page
+        if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
+        {
+            Nav.NavigateTo("/login");
             return;
+        }
 
         await LoadDashboardAsync();
     }
@@ -147,97 +121,106 @@
     {
         IsLoading = true;
 
-        // Current user id from your in-memory session service
-        var userId = UserSession.CurrentUserId!.Value;
-
-        // Load all entries for this user (SQLite via EF Core)
-        var allEntries = await DB.JournalEntries
-            .Where(e => e.UserId == userId)
-            .OrderByDescending(e => e.CreatedAt)
-            .ToListAsync();
-
-        // Recent entries: take the latest 5
-        RecentEntries = allEntries.Take(5).ToList();
-
-        // Entries this week (Mon -> Sun) using local dates
-        var today = DateTime.Today;
-        var weekStart = StartOfWeek(today, DayOfWeek.Monday);
-        var weekEnd = weekStart.AddDays(7);
-
-        EntriesThisWeek = allEntries.Count(e =>
+        try
         {
-            var d = e.CreatedAt.ToLocalTime().Date;
-            return d >= weekStart && d < weekEnd;
-        });
+            var userId = UserSession.CurrentUserId!.Value;
+            var today = DateTime.Today;
 
-        // Most frequent mood (simple count)
-        MostFrequentMood = allEntries
-            .GroupBy(e => (e.Mood ?? "Neutral").Trim())
-            .OrderByDescending(g => g.Count())
-            .Select(g => g.Key)
-            .FirstOrDefault() ?? "-";
+            // Load recent entries for this user (latest first)
+            RecentEntries = await DB.JournalEntries
+                .Where(e => e.UserId == userId)
+                .OrderByDescending(e => e.EntryDate)
+                .Take(10)
+                .ToListAsync();
 
-        // Current streak = consecutive days including today (only counts if user has an entry today)
-        CurrentStreakDays = CalculateStreak(allEntries);
+            // Find today's entry Id (if it exists)
+            TodayEntryId = await DB.JournalEntries
+                .Where(e => e.UserId == userId && e.EntryDate == today)
+                .Select(e => (int?)e.Id)
+                .FirstOrDefaultAsync();
 
-        IsLoading = false;
+            // Entries this week (simple approach: last 7 days including today)
+            var weekStart = today.AddDays(-6);
+            EntriesThisWeek = await DB.JournalEntries
+                .CountAsync(e => e.UserId == userId && e.EntryDate >= weekStart && e.EntryDate <= today);
+
+            // Most frequent mood (based on stored Mood field)
+            MostFrequentMood = RecentEntries
+                .GroupBy(e => e.Mood)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .FirstOrDefault() ?? "—";
+
+            // Current streak (count continuous days ending today)
+            CurrentStreak = await CalculateCurrentStreakAsync(userId);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
-    // Navigates to the page that has: @page "/new-entry"
-    private void NavigateToNewEntry()
+    private void GoToTodayEntry()
     {
+        // If today's entry exists, go to edit mode
+        if (TodayEntryId.HasValue)
+        {
+            Nav.NavigateTo($"/new-entry/{TodayEntryId.Value}");
+            return;
+        }
+
+        // Otherwise, go to new entry page (create mode)
         Nav.NavigateTo("/new-entry");
     }
 
-    // Small helper: preview text without making the UI messy
-    private string GetPreview(string? content)
+    private async Task<int> CalculateCurrentStreakAsync(int userId)
     {
-        if (string.IsNullOrWhiteSpace(content))
-            return "No content";
+        // Load last ~60 days to calculate streak safely
+        var today = DateTime.Today;
+        var start = today.AddDays(-60);
 
-        var trimmed = content.Trim();
-        return trimmed.Length <= 80 ? trimmed : trimmed.Substring(0, 80) + "...";
-    }
-
-    // Used for mood styling in CSS
-    private string MoodClass(string? mood)
-    {
-        var m = (mood ?? "").Trim().ToLowerInvariant();
-
-        return m switch
-        {
-            "positive" => "mood-positive",
-            "negative" => "mood-negative",
-            _ => "mood-neutral"
-        };
-    }
-
-    private static DateTime StartOfWeek(DateTime date, DayOfWeek startDay)
-    {
-        int diff = (7 + (date.DayOfWeek - startDay)) % 7;
-        return date.AddDays(-diff).Date;
-    }
-
-    private static int CalculateStreak(List<JournalEntry> entries)
-    {
-        // Convert entries into a set of unique local dates
-        var days = entries
-            .Select(e => e.CreatedAt.ToLocalTime().Date)
+        var dates = await DB.JournalEntries
+            .Where(e => e.UserId == userId && e.EntryDate >= start && e.EntryDate <= today)
+            .Select(e => e.EntryDate)
             .Distinct()
-            .ToHashSet();
+            .OrderByDescending(d => d)
+            .ToListAsync();
 
-        // Streak counts only if today has an entry
-        var current = DateTime.Today;
-        if (!days.Contains(current))
+        // No entries today = streak is 0 (you can change this rule if needed)
+        if (!dates.Contains(today))
             return 0;
 
-        int streak = 0;
-        while (days.Contains(current))
+        // Count consecutive days backwards from today
+        var streak = 0;
+        var check = today;
+
+        while (dates.Contains(check))
         {
             streak++;
-            current = current.AddDays(-1);
+            check = check.AddDays(-1);
         }
 
         return streak;
+    }
+
+    private string GetSnippet(string content)
+    {
+        // Makes a short preview line from content
+        if (string.IsNullOrWhiteSpace(content))
+            return "";
+
+        content = content.Replace("\r", "").Replace("\n", " ").Trim();
+        return content.Length > 60 ? content.Substring(0, 60) + "..." : content;
+    }
+
+    private string MoodClass(string mood)
+    {
+        // Applies a small style class based on mood type
+        return mood switch
+        {
+            "Positive" => "positive",
+            "Negative" => "negative",
+            _ => "neutral"
+        };
     }
 }

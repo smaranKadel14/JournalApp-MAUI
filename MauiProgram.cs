@@ -38,6 +38,9 @@ namespace JournalApp
             // Your existing service
             builder.Services.AddSingleton<UserService>();
 
+            // Journal entries CRUD helper (create/update/delete)
+            builder.Services.AddScoped<JournalApp.Services.JournalEntryService>();
+
             var app = builder.Build();
 
             // ✅ 3) Create database + tables automatically (first run)
