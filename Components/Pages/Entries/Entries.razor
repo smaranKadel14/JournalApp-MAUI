@@ -1,0 +1,256 @@
+﻿@page "/entries"
+
+@* 
+    ENTRIES LIST PAGE (Option A Feature)
+    - I created this page to show ALL saved journal entries of the currently logged-in user.
+    - I added search + mood filter so I can quickly find older entries.
+    - Each entry row is clickable and navigates to the edit page: /new-entry/{id}
+    - I also show a small snippet preview (HTML stripped) so the list looks clean.
+*@
+
+@using Microsoft.EntityFrameworkCore
+@using JournalApp.Models
+@using JournalApp.Utils
+
+@inject JournalApp.Services.UserService UserSession
+@inject JournalApp.Data.AppDbContext DB
+@inject NavigationManager Nav
+
+<div class="entries-wrapper">
+
+    <header class="entries-header">
+        <div class="left">
+            <h1>Entries</h1>
+            <p class="subtitle">I can browse, search, and filter all my journal entries here.</p>
+        </div>
+
+        <div class="right">
+            <button class="primary-btn" @onclick="GoNewEntry">
+                + New Entry
+            </button>
+        </div>
+    </header>
+
+    <!-- Filters row -->
+    <section class="filters">
+        <div class="filter-item">
+            <label>Search</label>
+            @* 
+                I store the search text in SearchText.
+                I apply the filter when I click Search or press Enter.
+            *@
+            <input class="input"
+                   placeholder="Search title or content..."
+                   @bind="SearchText"
+                   @bind:event="oninput"
+                   @onkeydown="OnSearchKeyDown" />
+        </div>
+
+        <div class="filter-item">
+            <label>Mood</label>
+            @* 
+                I filter by primary mood group (Mood column in DB).
+                "All" means no mood filter.
+            *@
+            <select class="input" @bind="MoodFilter">
+                <option value="All">All</option>
+                <option value="Positive">Positive</option>
+                <option value="Neutral">Neutral</option>
+                <option value="Negative">Negative</option>
+            </select>
+        </div>
+
+        <div class="filter-actions">
+            <button class="ghost-btn" @onclick="ApplyFiltersAsync" disabled="@IsLoading">
+                @(IsLoading ? "Searching..." : "Search")
+            </button>
+
+            <button class="clear-btn" @onclick="ClearFiltersAsync" disabled="@IsLoading">
+                Clear
+            </button>
+        </div>
+    </section>
+
+    <!-- Status / results -->
+    @if (IsLoading)
+    {
+        <p class="status-text">Loading...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="error-box">@ErrorMessage</div>
+    }
+    else if (AllEntries.Count == 0)
+    {
+        <div class="empty-state">
+            <p>No entries found.</p>
+            <button class="ghost-btn" @onclick="GoNewEntry">Write one now</button>
+        </div>
+    }
+    else
+    {
+        <div class="list">
+            @foreach (var e in AllEntries)
+            {
+                <div class="item" @onclick="@(() => GoEditEntry(e.Id))">
+                    <div class="item-left">
+                        <div class="date">@e.EntryDate.ToString("MMMM dd, yyyy")</div>
+                        <div class="title">@e.Title</div>
+                        <div class="snippet">@MakeSnippet(e.Content)</div>
+                    </div>
+
+                    <div class="item-right">
+                        <span class="mood-pill @MoodClass(e.Mood)">@e.Mood</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    // -----------------------
+    // Page State
+    // -----------------------
+
+    private bool IsLoading { get; set; } = true;
+    private string ErrorMessage { get; set; } = "";
+
+    // I store query/filter state here
+    private string SearchText { get; set; } = "";
+    private string MoodFilter { get; set; } = "All";
+
+    // I store the filtered results here
+    private List<JournalEntry> AllEntries { get; set; } = new();
+
+    // -----------------------
+    // Lifecycle
+    // -----------------------
+
+    protected override async Task OnInitializedAsync()
+    {
+        // I protect this page so only logged-in users can access it.
+        if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        await LoadEntriesAsync();
+    }
+
+    // -----------------------
+    // Data Loading
+    // -----------------------
+
+    private async Task LoadEntriesAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = "";
+
+        try
+        {
+            var userId = UserSession.CurrentUserId!.Value;
+
+            // I build the query dynamically based on filters.
+            var q = DB.JournalEntries
+                .AsNoTracking()
+                .Where(e => e.UserId == userId);
+
+            // Mood filter
+            if (!string.Equals(MoodFilter, "All", StringComparison.OrdinalIgnoreCase))
+            {
+                q = q.Where(e => e.Mood == MoodFilter);
+            }
+
+            // Search filter (search in Title + Content)
+            var s = (SearchText ?? "").Trim();
+            if (!string.IsNullOrWhiteSpace(s))
+            {
+                // I use LIKE because it works well with SQLite.
+                var like = $"%{s}%";
+                q = q.Where(e =>
+                    EF.Functions.Like(e.Title, like) ||
+                    EF.Functions.Like(e.Content, like));
+            }
+
+            // I show newest entries first
+            AllEntries = await q
+                .OrderByDescending(e => e.EntryDate)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to load entries: " + ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    // -----------------------
+    // Filter Events
+    // -----------------------
+
+    private async Task ApplyFiltersAsync()
+    {
+        await LoadEntriesAsync();
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        // I reset filters back to default and reload the list.
+        SearchText = "";
+        MoodFilter = "All";
+        await LoadEntriesAsync();
+    }
+
+    private async Task OnSearchKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        // Press Enter to search (faster UX)
+        if (e.Key == "Enter")
+            await ApplyFiltersAsync();
+    }
+
+    // -----------------------
+    // Navigation
+    // -----------------------
+
+    private void GoNewEntry()
+    {
+        // I navigate to the create page (your existing route).
+        Nav.NavigateTo("/new-entry");
+    }
+
+    private void GoEditEntry(int id)
+    {
+        // I navigate to the edit page (your existing route with id).
+        Nav.NavigateTo($"/new-entry/{id}");
+    }
+
+    // -----------------------
+    // UI helpers
+    // -----------------------
+
+    private string MakeSnippet(string html)
+    {
+        // I strip HTML so the list doesn't show tags like <h2> or <b>.
+        var text = Util.StripHtml(html ?? "");
+
+        if (string.IsNullOrWhiteSpace(text))
+            return "";
+
+        return text.Length > 90 ? text.Substring(0, 90) + "..." : text;
+    }
+
+    private string MoodClass(string mood)
+    {
+        return mood switch
+        {
+            "Positive" => "positive",
+            "Negative" => "negative",
+            _ => "neutral"
+        };
+    }
+}

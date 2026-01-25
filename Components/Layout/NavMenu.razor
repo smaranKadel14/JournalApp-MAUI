@@ -1,58 +1,69 @@
 ﻿@using JournalApp.Services
+@implements IDisposable
 @inject UserService UserSession
 @inject NavigationManager Nav
 
 <div class="nav-scrollable">
     <nav class="flex-column">
 
-        <!-- Always show Home -->
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
-            </NavLink>
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
         </div>
 
-        @if (!UserSession.IsLoggedIn)
+        @if (UserSession.IsLoggedIn)
         {
-            <!-- Show these only if NOT logged in -->
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="login">
-                    <span class="bi bi-person-fill" aria-hidden="true"></span> Login
-                </NavLink>
+                <NavLink class="nav-link" href="/dashboard">Dashboard</NavLink>
             </div>
 
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="signup">
-                    <span class="bi bi-person-plus-fill" aria-hidden="true"></span> Signup
-                </NavLink>
+                <NavLink class="nav-link" href="/entries">Entries</NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/new-entry">New Entry</NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <button type="button" class="nav-link btn btn-link p-0" style="cursor:pointer" @onclick="Logout">
+                    Logout
+                </button>
             </div>
         }
         else
         {
-            <!-- Show these only if logged in -->
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="new-entry">
-                    <span class="bi bi-pencil-square" aria-hidden="true"></span> New Entry
-                </NavLink>
+                <NavLink class="nav-link" href="/login">Login</NavLink>
             </div>
 
             <div class="nav-item px-3">
-                <!-- Use a button for logout click -->
-                <button class="nav-link btn btn-link p-0" style="cursor:pointer" @onclick="Logout">
-                    <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
-                </button>
+                <NavLink class="nav-link" href="/signup">Signup</NavLink>
             </div>
         }
     </nav>
 </div>
 
 @code {
+    protected override void OnInitialized()
+    {
+        // I subscribe so the nav updates immediately after login/logout
+        UserSession.OnChange += HandleUserStateChanged;
+    }
+
+    private void HandleUserStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
     private void Logout()
     {
-        // Clear the session properly
         UserSession.Logout();
+        Nav.NavigateTo("/login");
+    }
 
-        // Redirect to login page (or home if you want)
-        Nav.NavigateTo("/login", forceLoad: false);
+    public void Dispose()
+    {
+        // I unsubscribe to avoid memory leaks
+        UserSession.OnChange -= HandleUserStateChanged;
     }
 }
