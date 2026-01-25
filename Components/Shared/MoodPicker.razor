@@ -1,0 +1,90 @@
+﻿@* 
+    MoodPicker Component
+    --------------------
+*@
+
+<div class="field">
+    <label>Primary Mood (required)</label>
+
+    <div class="mood-selector">
+        @foreach (var group in MoodGroups)
+        {
+            <button type="button"
+                    class="mood-opt @(PrimaryMoodGroup == group ? "selected" : "")"
+                    @onclick="@(() => SetPrimaryGroup(group))">
+                @group
+            </button>
+        }
+    </div>
+
+    <div class="hint">
+        Your primary mood group is stored in DB as <b>Mood</b> (for analytics).
+    </div>
+</div>
+
+<div class="field">
+    <label>Secondary Mood (optional, max 2)</label>
+
+    @foreach (var group in MoodGroups)
+    {
+        <div class="secondary-group">
+            <div class="secondary-title">@group</div>
+
+            <div class="mood-categories">
+                @foreach (var mood in MoodMap[group])
+                {
+                    var isSelected = SecondaryMoods.Contains(mood);
+
+                    <button type="button"
+                            class="pill @(isSelected ? "selected" : "")"
+                            @onclick="@(() => ToggleSecondaryMood(mood))">
+                        @mood
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="hint">
+        Secondary moods are UI-only for now (we can add DB columns later).
+    </div>
+</div>
+
+@code {
+    // Data from parent (NewEntry)
+    [Parameter] public List<string> MoodGroups { get; set; } = new();
+    [Parameter] public Dictionary<string, List<string>> MoodMap { get; set; } = new();
+
+    // Two-way binding for PrimaryMoodGroup
+    [Parameter] public string PrimaryMoodGroup { get; set; } = "Neutral";
+    [Parameter] public EventCallback<string> PrimaryMoodGroupChanged { get; set; }
+
+    // Two-way binding for SecondaryMoods
+    [Parameter] public List<string> SecondaryMoods { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> SecondaryMoodsChanged { get; set; }
+
+    private async Task SetPrimaryGroup(string group)
+    {
+        PrimaryMoodGroup = group;
+        await PrimaryMoodGroupChanged.InvokeAsync(group);
+    }
+
+    private async Task ToggleSecondaryMood(string mood)
+    {
+        // Work on a copy so Blazor detects changes correctly
+        var list = SecondaryMoods?.ToList() ?? new List<string>();
+
+        if (list.Contains(mood))
+        {
+            list.Remove(mood);
+        }
+        else
+        {
+            // Limit to max 2
+            if (list.Count >= 2) return;
+            list.Add(mood);
+        }
+
+        await SecondaryMoodsChanged.InvokeAsync(list);
+    }
+}

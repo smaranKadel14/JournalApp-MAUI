@@ -1,0 +1,95 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+@* 
+    TagPicker Component
+    -------------------
+*@
+
+<div class="field">
+    <label>Tags (optional)</label>
+
+    <div class="tag-cloud">
+        @foreach (var tag in PrebuiltTags)
+        {
+            var selected = SelectedTags.Contains(tag);
+
+            <button type="button"
+                    class="tag-btn @(selected ? "selected" : "")"
+                    @onclick="@(() => ToggleTag(tag))">
+                @tag
+            </button>
+        }
+    </div>
+
+    <div class="tag-add">
+        <input class="input"
+               type="text"
+               placeholder="Add a custom tag and press Enter..."
+               @bind="CustomTag"
+               @onkeydown="OnCustomTagKeyDown" />
+
+        <button type="button" class="tag-add-btn" @onclick="AddCustomTag">
+            Add
+        </button>
+    </div>
+
+    @if (SelectedTags.Count > 0)
+    {
+        <div class="selected-tags">
+            @foreach (var t in SelectedTags)
+            {
+                <span class="selected-tag">
+                    @t
+                    <button type="button" class="tag-remove" @onclick="@(() => RemoveTag(t))">×</button>
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<string> PrebuiltTags { get; set; } = new();
+
+    // two-way bind SelectedTags
+    [Parameter] public List<string> SelectedTags { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> SelectedTagsChanged { get; set; }
+
+    private string CustomTag { get; set; } = "";
+
+    private async Task ToggleTag(string tag)
+    {
+        var list = SelectedTags?.ToList() ?? new List<string>();
+
+        if (list.Contains(tag)) list.Remove(tag);
+        else list.Add(tag);
+
+        await SelectedTagsChanged.InvokeAsync(list);
+    }
+
+    private async Task RemoveTag(string tag)
+    {
+        var list = SelectedTags?.ToList() ?? new List<string>();
+        list.Remove(tag);
+        await SelectedTagsChanged.InvokeAsync(list);
+    }
+
+    private async Task AddCustomTag()
+    {
+        var tag = (CustomTag ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(tag)) return;
+
+        var list = SelectedTags?.ToList() ?? new List<string>();
+
+        if (!list.Any(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase)))
+            list.Add(tag);
+
+        CustomTag = "";
+        await SelectedTagsChanged.InvokeAsync(list);
+    }
+
+    private async Task OnCustomTagKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await AddCustomTag();
+    }
+}

@@ -1,16 +1,27 @@
-﻿/* Container */
+﻿/* 
+    NewEntry Page Styles
+    --------------------
+*/
+
+/* Container */
 .entry-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 40px 20px;
 }
 
-/* Header: Back | Title | Save */
+/* Header: Back | Title | Actions */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 18px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 .back-link {
@@ -21,6 +32,7 @@
     font-size: 1rem;
 }
 
+/* Save button */
 .save-btn {
     background: #e66b7a;
     color: white;
@@ -32,6 +44,22 @@
 }
 
     .save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+/* Delete button (soft danger style) */
+.delete-btn {
+    background: #ffffff;
+    color: #e66b7a;
+    border: 1px solid rgba(230, 107, 122, 0.6);
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+    .delete-btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
     }
@@ -104,143 +132,10 @@
     font-family: inherit;
 }
 
-/* Primary mood group buttons */
-.mood-selector {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.mood-opt {
-    padding: 8px 15px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: white;
-    cursor: pointer;
-    transition: 0.15s ease;
-}
-
-    .mood-opt:hover {
-        background: #f8f9fa;
-    }
-
-    .mood-opt.selected {
-        border-color: #e66b7a;
-        background: rgba(230, 107, 122, 0.12);
-    }
-
-/* Mood categories (pill buttons) */
-.mood-categories {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.pill {
-    border: 1px solid #ddd;
-    background: #fff;
-    padding: 7px 14px;
-    border-radius: 16px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: 0.15s ease;
-}
-
-    .pill:hover {
-        background: #f8f9fa;
-    }
-
-    .pill.selected {
-        border-color: #e66b7a;
-        background: #e66b7a;
-        color: #fff;
-    }
-
-/* Secondary group */
-.secondary-group {
-    margin-top: 8px;
-    padding-top: 10px;
-    border-top: 1px dashed #eee;
-}
-
-.secondary-title {
-    font-weight: 700;
-    color: #666;
-    margin-bottom: 8px;
-}
-
 /* Hint text */
 .hint {
     color: #777;
     font-size: 0.85rem;
-}
-
-/* Tag cloud */
-.tag-cloud {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.tag-btn {
-    background: #f1f3f5;
-    padding: 6px 14px;
-    border-radius: 15px;
-    font-size: 0.85rem;
-    color: #666;
-    border: 1px solid transparent;
-    cursor: pointer;
-}
-
-    .tag-btn.selected {
-        background: #e66b7a;
-        color: #fff;
-    }
-
-/* Custom tag row */
-.tag-add {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-top: 6px;
-}
-
-.tag-add-btn {
-    background: #e66b7a;
-    color: #fff;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 700;
-}
-
-/* Selected tags display */
-.selected-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-}
-
-.selected-tag {
-    background: rgba(230, 107, 122, 0.12);
-    border: 1px solid rgba(230, 107, 122, 0.35);
-    color: #444;
-    padding: 6px 10px;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.tag-remove {
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 1rem;
-    line-height: 1;
-    color: #e66b7a;
 }
 
 /* Error box */
@@ -249,6 +144,16 @@
     background: rgba(230, 107, 122, 0.12);
     border: 1px solid rgba(230, 107, 122, 0.35);
     color: #a63846;
+    padding: 12px 14px;
+    border-radius: 12px;
+}
+
+/* Green info message box */
+.info-box {
+    margin-top: 12px;
+    background: rgba(46, 204, 113, 0.12);
+    border: 1px solid rgba(46, 204, 113, 0.35);
+    color: #1f7a44;
     padding: 12px 14px;
     border-radius: 12px;
 }
@@ -262,101 +167,3 @@
     height: 1px;
     overflow: hidden;
 }
-
-/* Green info message box */
-.info-box {
-    margin-top: 12px;
-    background: rgba(46, 204, 113, 0.12);
-    border: 1px solid rgba(46, 204, 113, 0.35);
-    color: #1f7a44;
-    padding: 12px 14px;
-    border-radius: 12px;
-}
-
-/* Delete button (soft danger style) */
-.delete-btn {
-    background: #ffffff;
-    color: #e66b7a;
-    border: 1px solid rgba(230, 107, 122, 0.6);
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-    .delete-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-/* ===== Rich Text Editor (App-themed, light) ===== */
-
-.rte-toolbar {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-    background: #ffffff;
-    border: 1px solid #eee;
-    border-radius: 14px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-}
-
-.rte-btn {
-    border: 1px solid #e9e9e9;
-    background: #fafafa;
-    border-radius: 12px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    line-height: 1;
-    color: #333;
-    transition: 0.15s ease;
-}
-
-    .rte-btn:hover {
-        background: #f3f4f6;
-        transform: translateY(-1px);
-    }
-
-    .rte-btn:active {
-        transform: translateY(0);
-    }
-
-.rte-sep {
-    width: 1px;
-    height: 22px;
-    background: #e9e9e9;
-    margin: 0 2px;
-}
-
-.rte-editor {
-    min-height: 240px;
-    border: 1px solid #eee;
-    border-radius: 15px;
-    padding: 18px;
-    background: #ffffff;
-    outline: none;
-    font-family: inherit;
-    color: #333;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
-}
-
-    /* Placeholder for contenteditable */
-    .rte-editor:empty:before {
-        content: attr(data-placeholder);
-        color: #9aa0a6;
-    }
-
-    /* Make headings inside the editor look consistent */
-    .rte-editor h1, .rte-editor h2, .rte-editor h3 {
-        margin: 10px 0;
-    }
-
-    /* Links match your accent color */
-    .rte-editor a {
-        color: #e66b7a;
-        text-decoration: underline;
-    }

@@ -1,0 +1,64 @@
+﻿/* MoodPicker styles */
+
+.mood-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mood-opt {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: 0.15s ease;
+}
+
+    .mood-opt:hover {
+        background: #f8f9fa;
+    }
+
+    .mood-opt.selected {
+        border-color: #e66b7a;
+        background: rgba(230, 107, 122, 0.12);
+    }
+
+/* Secondary groups */
+.secondary-group {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed #eee;
+}
+
+.secondary-title {
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.mood-categories {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pill {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 7px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.15s ease;
+}
+
+    .pill:hover {
+        background: #f8f9fa;
+    }
+
+    .pill.selected {
+        border-color: #e66b7a;
+        background: #e66b7a;
+        color: #fff;
+    }
