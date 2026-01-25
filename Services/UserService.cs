@@ -1,34 +1,35 @@
-﻿namespace JournalApp.Services;
-
-public class UserService
+﻿namespace JournalApp.Services
 {
-    // Holds the logged-in user's database ID (null means "not logged in")
-    public int? CurrentUserId { get; private set; }
-
-    // Holds the logged-in user's username for showing in UI (Home page, etc.)
-    public string CurrentUsername { get; private set; } = "";
-
-    // True when we have a valid logged-in user
-    public bool IsLoggedIn => CurrentUserId.HasValue;
-
-    // Call this after a successful login to store session details in memory
-    public void SetCurrentUser(int userId, string username)
+    public class UserService
     {
-        CurrentUserId = userId;
-        CurrentUsername = username;
-    }
+        // I keep session data here
+        public bool IsLoggedIn { get; private set; }
+        public int? CurrentUserId { get; private set; }
+        public string? CurrentUsername { get; private set; }
 
-    // Convenience overload: if you only have the ID, still allow setting the session
-    public void SetCurrentUser(int userId)
-    {
-        CurrentUserId = userId;
-        CurrentUsername = "";
-    }
+        // I use this event to tell UI to refresh when login state changes
+        public event Action? OnChange;
 
-    // Clears the session when the user logs out
-    public void Logout()
-    {
-        CurrentUserId = null;
-        CurrentUsername = "";
+        private void NotifyStateChanged() => OnChange?.Invoke();
+
+        // I call this after successful login
+        public void SetCurrentUser(int userId, string username)
+        {
+            CurrentUserId = userId;
+            CurrentUsername = username;
+            IsLoggedIn = true;
+
+            NotifyStateChanged();
+        }
+
+        // I call this when user logs out
+        public void Logout()
+        {
+            CurrentUserId = null;
+            CurrentUsername = null;
+            IsLoggedIn = false;
+
+            NotifyStateChanged();
+        }
     }
 }
