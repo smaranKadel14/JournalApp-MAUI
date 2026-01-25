@@ -5,14 +5,14 @@
    - Only ONE entry per day per user
    - CreatedAt/UpdatedAt are system generated
    - When user changes date, we load that day's entry if it exists
-   - Content is saved as HTML from a Teams-like Rich Text editor *@
+   - Content is saved as HTML from a Rich Text editor *@
 
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.EntityFrameworkCore
-@using JournalApp.Models
 @using Microsoft.JSInterop
+@using JournalApp.Models
 
 @inject IJSRuntime JS
 @inject JournalApp.Services.UserService UserSession
@@ -28,7 +28,6 @@
         <h1>@(IsEditMode ? "Edit Entry" : "New Entry")</h1>
 
         <div style="display:flex; gap:10px; align-items:center;">
-            @* Show Delete only when we are editing an existing entry *@
             @if (IsEditMode)
             {
                 <button type="button" class="delete-btn" @onclick="DeleteEntry" disabled="@IsSaving">
@@ -69,8 +68,7 @@
         <div class="field">
             <label>Date</label>
 
-            @* IMPORTANT:
-               We use Value/ValueChanged so we can "react" to date changes cleanly *@
+            @* Value/ValueChanged so we can react to date changes *@
             <InputDate class="input"
                        Value="EntryDate"
                        ValueChanged="@(async (DateTime d) => await OnEntryDateChanged(d))"
@@ -90,11 +88,10 @@
         </div>
     </div>
 
-    <!-- Primary Mood (required) -->
+    <!-- Primary Mood -->
     <div class="field">
         <label>Primary Mood (required)</label>
 
-        <!-- Choose mood group -->
         <div class="mood-selector">
             @foreach (var group in MoodGroups)
             {
@@ -111,7 +108,7 @@
         </div>
     </div>
 
-    <!-- Secondary Moods (optional, max 2) -->
+    <!-- Secondary Moods (optional) -->
     <div class="field">
         <label>Secondary Mood (optional, max 2)</label>
 
@@ -183,38 +180,39 @@
         }
     </div>
 
-    <!-- Rich Text Content (Teams-like) -->
+    <!-- Rich Text Content -->
     <div class="field">
         <label>Content (Rich Text)</label>
 
         <!-- Toolbar -->
-        <div class="rte-toolbar">
+        <div class="rte-toolbar" role="toolbar" aria-label="Formatting toolbar">
             <button type="button" class="rte-btn" title="Bold" @onclick="BoldAsync"><b>B</b></button>
             <button type="button" class="rte-btn" title="Italic" @onclick="ItalicAsync"><i>I</i></button>
             <button type="button" class="rte-btn" title="Strikethrough" @onclick="StrikeAsync"><s>S</s></button>
 
-            <div class="rte-sep"></div>
+            <span class="rte-sep" aria-hidden="true"></span>
 
             <button type="button" class="rte-btn" title="Heading" @onclick="H2Async">H</button>
-            <button type="button" class="rte-btn" title="Bullet List" @onclick="BulletsAsync">•≡</button>
-            <button type="button" class="rte-btn" title="Numbered List" @onclick="NumbersAsync">1≡</button>
+            <button type="button" class="rte-btn" title="Bullet list" @onclick="BulletsAsync">•≡</button>
+            <button type="button" class="rte-btn" title="Numbered list" @onclick="NumbersAsync">1≡</button>
 
-            <div class="rte-sep"></div>
+            <span class="rte-sep" aria-hidden="true"></span>
 
-            <button type="button" class="rte-btn" title="Insert Link" @onclick="LinkAsync">🔗</button>
-            <button type="button" class="rte-btn" title="Remove Link" @onclick="UnlinkAsync">⛓️‍💥</button>
+            <button type="button" class="rte-btn" title="Insert link" @onclick="LinkAsync">🔗</button>
+            <button type="button" class="rte-btn" title="Remove link" @onclick="UnlinkAsync">⨯</button>
         </div>
 
         <!-- Editor surface -->
-        <div id="@EditorDomId"
+        <div id="@EditorId"
              class="rte-editor"
              contenteditable="true"
              data-placeholder="Type a message..."
-             @ref="EditorRef">
+             @ref="EditorRef"
+             @oninput="OnEditorInput">
         </div>
 
         <div class="hint">
-            Tip: select text → click toolbar (Bold/Italic/Link). Lists/Heading apply at cursor.
+            Select text → Bold/Italic/Link. Lists/Heading apply at cursor.
         </div>
     </div>
 
@@ -230,25 +228,19 @@
     // Routing / mode
     // -------------------------
 
-    // Route param: /new-entry/5 means edit entry Id=5
-    [Parameter] public int? EntryId { get; set; }
-
-    // We are in "edit mode" if we loaded an entry from DB
-    private bool IsEditMode => CurrentEntryDbId.HasValue;
-
-    // Holds DB Id of currently loaded entry (if any)
-    private int? CurrentEntryDbId { get; set; } = null;
+    [Parameter] public int? EntryId { get; set; }                 // /new-entry/5 => open entry id 5
+    private bool IsEditMode => CurrentEntryDbId.HasValue;         // Edit mode if a DB entry is loaded
+    private int? CurrentEntryDbId { get; set; } = null;           // Current DB Id (null means "new")
 
     // -------------------------
     // Fields
     // -------------------------
 
-    // Basic fields
     private string Title { get; set; } = "";
     private DateTime EntryDate { get; set; } = DateTime.Today;
     private string Category { get; set; } = "Personal";
 
-    // IMPORTANT: Content is HTML from the rich text editor
+    // Rich editor stores HTML here (saved to DB)
     private string Content { get; set; } = "";
 
     // System timestamps (stored in DB)
@@ -261,14 +253,17 @@
     private readonly Dictionary<string, List<string>> MoodMap = new()
     {
         ["Positive"] = new() { "Happy", "Excited", "Relaxed", "Grateful", "Confident" },
-        ["Neutral"]  = new() { "Calm", "Thoughtful", "Curious", "Nostalgic", "Bored" },
+        ["Neutral"] = new() { "Calm", "Thoughtful", "Curious", "Nostalgic", "Bored" },
         ["Negative"] = new() { "Sad", "Angry", "Stressed", "Lonely", "Anxious" }
     };
 
-    // Primary mood group (stored in DB)
+    // Stored in DB (analytics)
     private string PrimaryMoodGroup { get; set; } = "Neutral";
 
-    // Secondary moods (UI-only for now)
+    // UI helper (used for safe defaults)
+    private string PrimaryMood { get; set; } = "Calm";
+
+    // UI-only
     private List<string> SecondaryMoods { get; set; } = new();
 
     // Category list
@@ -277,7 +272,7 @@
         "Personal", "Work", "Studies", "Family", "Friends", "Health", "Self-care", "Travel", "Finance"
     };
 
-    // Tags list (UI-only for now)
+    // Tags list
     private readonly List<string> PrebuiltTags = new()
     {
         "Work","Career","Studies","Family","Friends","Relationships","Health","Fitness","Personal Growth","Self-care",
@@ -288,7 +283,7 @@
     private List<string> SelectedTags { get; set; } = new();
     private string CustomTag { get; set; } = "";
 
-    // UI helpers
+    // UI state
     private bool IsSaving { get; set; } = false;
     private string ErrorMessage { get; set; } = "";
     private string InfoMessage { get; set; } = "";
@@ -297,96 +292,177 @@
     // Rich Text Editor wiring
     // -------------------------
 
-    // DOM id used by JS to get/set editor HTML
-    private const string EditorDomId = "journal-rte";
+    private string EditorId { get; } = $"rte_{Guid.NewGuid():N}";  // Unique editor id so JS targets correct element
+    private ElementReference EditorRef;                             // Reference to the div (future use)
 
-    // Ref to editor element (kept for future enhancements)
-    private ElementReference EditorRef;
+    private bool _rteInitialized = false;                           // True after first render (safe to call JS)
+    private string _pendingEditorHtml = "";                         // Queued HTML to apply into editor
+    private bool _applyPendingEditorHtml = false;                   // Flag: apply queued HTML on render
 
-    // We queue HTML updates until the editor is rendered
-    private string _pendingEditorHtml = "";
-    private bool _hasPendingEditorHtml = false;
+    // Prevent overlapping JS calls while typing fast (keeps UI stable)
+    private bool _editorSyncInProgress = false;
+
+    /// <summary>
+    /// Queue HTML to be applied into editor after Blazor renders.
+    /// Use when loading a date / clearing / opening by id.
+    /// </summary>
+    private void QueueEditorHtml(string html)
+    {
+        _pendingEditorHtml = html ?? "";
+        _applyPendingEditorHtml = true;
+    }
+
+    /// <summary>
+    /// Strip HTML tags to validate "real" text (prevents saving empty like "<br>").
+    /// </summary>
+    private string StripHtml(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return "";
+
+        var noTags = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", string.Empty);
+        return System.Net.WebUtility.HtmlDecode(noTags).Trim();
+    }
+
+    /// <summary>
+    /// Updates the UI-only UpdatedAt label when user edits anything.
+    /// DB UpdatedAt is set on save.
+    /// </summary>
+    private void TouchUpdated()
+    {
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Keep Content synced with the editor while the user types.
+    /// IMPORTANT: Never let JS errors crash Blazor (otherwise buttons stop working).
+    /// </summary>
+    private async Task OnEditorInput()
+    {
+        if (!_rteInitialized) return;
+        if (_editorSyncInProgress) return;
+
+        _editorSyncInProgress = true;
+
+        try
+        {
+            Content = await JS.InvokeAsync<string>("rte.getHtml", EditorId);
+            TouchUpdated();
+        }
+        catch
+        {
+            // Swallow JS errors so the page doesn't become "dead"
+        }
+        finally
+        {
+            _editorSyncInProgress = false;
+        }
+    }
+
+    /// <summary>
+    /// Apply queued HTML into the editor safely after rendering.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            _rteInitialized = true;
+
+        if (_rteInitialized && _applyPendingEditorHtml)
+        {
+            _applyPendingEditorHtml = false;
+
+            try
+            {
+                await JS.InvokeVoidAsync("rte.setHtml", EditorId, _pendingEditorHtml);
+            }
+            catch
+            {
+                // Swallow JS errors so the page stays usable
+            }
+        }
+    }
+
+    /// <summary>
+    /// Before saving, always pull latest HTML from the editor (safe).
+    /// </summary>
+    private async Task SyncEditorToContentAsync()
+    {
+        if (!_rteInitialized) return;
+
+        try
+        {
+            Content = await JS.InvokeAsync<string>("rte.getHtml", EditorId);
+        }
+        catch
+        {
+            // If JS fails, we keep the last Content we have
+        }
+    }
+
+    // Toolbar actions (safe wrappers)
+    private async Task SafeExecAsync(string command)
+    {
+        if (!_rteInitialized) return;
+
+        try { await JS.InvokeVoidAsync("rte.exec", EditorId, command, (object?)null); }
+        catch { }
+    }
+
+    private async Task SafeFormatBlockAsync(string tagName)
+    {
+        if (!_rteInitialized) return;
+
+        try { await JS.InvokeVoidAsync("rte.formatBlock", EditorId, tagName); }
+        catch { }
+    }
+
+    private async Task SafeCreateLinkAsync()
+    {
+        if (!_rteInitialized) return;
+
+        try { await JS.InvokeVoidAsync("rte.createLinkWithPrompt", EditorId); }
+        catch { }
+    }
+
+    private async Task SafeUnlinkAsync()
+    {
+        if (!_rteInitialized) return;
+
+        try { await JS.InvokeVoidAsync("rte.unlink", EditorId); }
+        catch { }
+    }
+
+    // Toolbar events
+    private Task BoldAsync() => SafeExecAsync("bold");
+    private Task ItalicAsync() => SafeExecAsync("italic");
+    private Task StrikeAsync() => SafeExecAsync("strikeThrough");
+    private Task BulletsAsync() => SafeExecAsync("insertUnorderedList");
+    private Task NumbersAsync() => SafeExecAsync("insertOrderedList");
+    private Task H2Async() => SafeFormatBlockAsync("H2");
+    private Task LinkAsync() => SafeCreateLinkAsync();
+    private Task UnlinkAsync() => SafeUnlinkAsync();
+
+    // -------------------------
+    // Lifecycle (initial load)
+    // -------------------------
 
     protected override async Task OnInitializedAsync()
     {
-        // Guard: must be logged in
+        // Must be logged in
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
         {
             Nav.NavigateTo("/login");
             return;
         }
 
-        // If user opened /new-entry/{id}, load by ID
+        // If opened by id: load that entry
         if (EntryId.HasValue)
         {
             await LoadEntryByIdAsync(EntryId.Value);
             return;
         }
 
-        // Otherwise, load today's entry if it exists
+        // Otherwise: load today's entry if exists (or create mode)
         await LoadEntryForDateAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // After render we can safely talk to the editor via JS
-        if (firstRender)
-        {
-            // First render: set initial content
-            await JS.InvokeVoidAsync("journalRte.setHtml", EditorDomId, Content);
-        }
-
-        // If we queued editor HTML (after a DB load), apply it here
-        if (_hasPendingEditorHtml)
-        {
-            await JS.InvokeVoidAsync("journalRte.setHtml", EditorDomId, _pendingEditorHtml);
-            _hasPendingEditorHtml = false;
-        }
-    }
-
-    private void QueueEditorHtml(string html)
-    {
-        // We cannot set editor HTML until it is rendered, so we queue it
-        _pendingEditorHtml = html ?? "";
-        _hasPendingEditorHtml = true;
-    }
-
-    private async Task SyncEditorToContentAsync()
-    {
-        // Pull latest HTML from the editor before saving
-        Content = await JS.InvokeAsync<string>("journalRte.getHtml", EditorDomId) ?? "";
-    }
-
-    private string StripHtml(string html)
-    {
-        // Used only for validation so empty rich text doesn't pass
-        if (string.IsNullOrWhiteSpace(html)) return "";
-        return System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", string.Empty).Trim();
-    }
-
-    // Run formatting commands (Teams-like toolbar)
-    private async Task CmdAsync(string cmd, string? value = null)
-    {
-        // Keep focus in editor so commands apply correctly
-        await JS.InvokeVoidAsync("journalRte.focus", EditorDomId);
-        await JS.InvokeVoidAsync("journalRte.exec", cmd, value);
-    }
-
-    private Task BoldAsync() => CmdAsync("bold");
-    private Task ItalicAsync() => CmdAsync("italic");
-    private Task StrikeAsync() => CmdAsync("strikeThrough");
-    private Task BulletsAsync() => CmdAsync("insertUnorderedList");
-    private Task NumbersAsync() => CmdAsync("insertOrderedList");
-    private Task H2Async() => CmdAsync("formatBlock", "h2");
-    private Task UnlinkAsync() => CmdAsync("unlink");
-
-    private async Task LinkAsync()
-    {
-        // Simple link workflow: select text -> insert link -> prompt for url
-        var url = await JS.InvokeAsync<string>("prompt", "Enter URL (https://...):", "https://");
-        if (string.IsNullOrWhiteSpace(url)) return;
-
-        await CmdAsync("createLink", url.Trim());
     }
 
     // -------------------------
@@ -395,63 +471,67 @@
 
     private void GoBack()
     {
-        // Go back to dashboard
         Nav.NavigateTo("/dashboard");
     }
 
     private async Task OnEntryDateChanged(DateTime newDate)
     {
-        // Normalize date to date-only, then load entry for that day
         EntryDate = newDate.Date;
         await LoadEntryForDateAsync();
     }
 
     private async Task LoadEntryForDateAsync()
     {
-        // Reset messages
         ErrorMessage = "";
         InfoMessage = "";
         CurrentEntryDbId = null;
 
-        // Normalize date to date-only
         var day = EntryDate.Date;
         EntryDate = day;
 
         var userId = UserSession.CurrentUserId!.Value;
 
-        // Find an existing entry for this user + this day
         var existing = await DB.JournalEntries
             .FirstOrDefaultAsync(e => e.UserId == userId && e.EntryDate == day);
 
         if (existing == null)
         {
-            // Create mode: clear fields
+            // Create mode
             Title = "";
             Content = "";
+
             PrimaryMoodGroup = "Neutral";
+            PrimaryMood = MoodMap[PrimaryMoodGroup].First();
+
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
 
             // Push cleared content into editor UI
             QueueEditorHtml(Content);
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
-        // Edit mode: load fields from DB
+        // Edit mode
         CurrentEntryDbId = existing.Id;
         Title = existing.Title;
         Content = existing.Content ?? "";
+
         PrimaryMoodGroup = string.IsNullOrWhiteSpace(existing.Mood) ? "Neutral" : existing.Mood;
+        if (!MoodMap.ContainsKey(PrimaryMoodGroup))
+            PrimaryMoodGroup = "Neutral";
+
+        PrimaryMood = MoodMap[PrimaryMoodGroup].First();
+
         CreatedAt = existing.CreatedAt;
         UpdatedAt = existing.UpdatedAt;
-        EntryDate = existing.EntryDate;
+        EntryDate = existing.EntryDate.Date;
 
         InfoMessage = "An entry already exists for this date. Saving will update it.";
 
         // Push loaded content into editor UI
         QueueEditorHtml(Content);
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadEntryByIdAsync(int id)
@@ -470,20 +550,24 @@
             return;
         }
 
-        // Load into edit mode
         CurrentEntryDbId = existing.Id;
         Title = existing.Title;
         Content = existing.Content ?? "";
+
         PrimaryMoodGroup = string.IsNullOrWhiteSpace(existing.Mood) ? "Neutral" : existing.Mood;
-        EntryDate = existing.EntryDate;
+        if (!MoodMap.ContainsKey(PrimaryMoodGroup))
+            PrimaryMoodGroup = "Neutral";
+
+        PrimaryMood = MoodMap[PrimaryMoodGroup].First();
+
+        EntryDate = existing.EntryDate.Date;
         CreatedAt = existing.CreatedAt;
         UpdatedAt = existing.UpdatedAt;
 
         InfoMessage = "Editing an existing entry.";
 
-        // Push loaded content into editor UI
         QueueEditorHtml(Content);
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     // -------------------------
@@ -492,14 +576,16 @@
 
     private void SetPrimaryGroup(string group)
     {
-        // Switching group updates the stored mood group value
         PrimaryMoodGroup = group;
-        UpdatedAt = DateTime.UtcNow;
+
+        if (MoodMap.ContainsKey(group))
+            PrimaryMood = MoodMap[group].First();
+
+        TouchUpdated();
     }
 
     private void ToggleSecondaryMood(string mood)
     {
-        // Enforce max 2 (UI-only feature)
         if (SecondaryMoods.Contains(mood))
             SecondaryMoods.Remove(mood);
         else
@@ -508,7 +594,7 @@
             SecondaryMoods.Add(mood);
         }
 
-        UpdatedAt = DateTime.UtcNow;
+        TouchUpdated();
     }
 
     private void ToggleTag(string tag)
@@ -518,13 +604,13 @@
         else
             SelectedTags.Add(tag);
 
-        UpdatedAt = DateTime.UtcNow;
+        TouchUpdated();
     }
 
     private void RemoveTag(string tag)
     {
         SelectedTags.Remove(tag);
-        UpdatedAt = DateTime.UtcNow;
+        TouchUpdated();
     }
 
     private void AddCustomTag()
@@ -532,23 +618,21 @@
         var tag = (CustomTag ?? "").Trim();
         if (string.IsNullOrWhiteSpace(tag)) return;
 
-        // Avoid duplicates (case-insensitive)
         if (!SelectedTags.Any(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase)))
             SelectedTags.Add(tag);
 
         CustomTag = "";
-        UpdatedAt = DateTime.UtcNow;
+        TouchUpdated();
     }
 
     private void OnCustomTagKeyDown(KeyboardEventArgs e)
     {
-        // Enter adds the custom tag quickly
         if (e.Key == "Enter")
             AddCustomTag();
     }
 
     // -------------------------
-    // Save / Delete (CRUD)
+    // Save / Delete
     // -------------------------
 
     private async Task SaveEntry()
@@ -556,7 +640,6 @@
         ErrorMessage = "";
         InfoMessage = "";
 
-        // Must be logged in
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
         {
             ErrorMessage = "You must be logged in to save an entry.";
@@ -564,17 +647,15 @@
             return;
         }
 
-        // Pull latest HTML from rich editor before validation/save
+        // Pull latest HTML before saving
         await SyncEditorToContentAsync();
 
-        // Basic validation
         if (string.IsNullOrWhiteSpace(Title))
         {
             ErrorMessage = "Title is required.";
             return;
         }
 
-        // Validate using plain text (strip HTML)
         if (string.IsNullOrWhiteSpace(StripHtml(Content)))
         {
             ErrorMessage = "Content is required.";
@@ -588,7 +669,7 @@
             var userId = UserSession.CurrentUserId.Value;
             var day = EntryDate.Date;
 
-            // If editing, update that entry
+            // Update existing
             if (CurrentEntryDbId.HasValue)
             {
                 var existing = await DB.JournalEntries
@@ -600,13 +681,10 @@
                     return;
                 }
 
-                // Update fields
                 existing.Title = Title.Trim();
                 existing.Content = Content;
                 existing.Mood = PrimaryMoodGroup;
                 existing.EntryDate = day;
-
-                // System update timestamp
                 existing.UpdatedAt = DateTime.UtcNow;
 
                 await DB.SaveChangesAsync();
@@ -614,13 +692,12 @@
                 return;
             }
 
-            // Enforce: only one entry per day
+            // Enforce one-per-day
             var existingForDay = await DB.JournalEntries
                 .FirstOrDefaultAsync(e => e.UserId == userId && e.EntryDate == day);
 
             if (existingForDay != null)
             {
-                // Convert create into update (safe fallback)
                 existingForDay.Title = Title.Trim();
                 existingForDay.Content = Content;
                 existingForDay.Mood = PrimaryMoodGroup;
@@ -633,15 +710,13 @@
                 return;
             }
 
-            // Create new entry
+            // Create new
             var entry = new JournalEntry
             {
                 Title = Title.Trim(),
                 Content = Content,
                 Mood = PrimaryMoodGroup,
                 UserId = userId,
-
-                // Daily date + system timestamps
                 EntryDate = day,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -667,11 +742,9 @@
         ErrorMessage = "";
         InfoMessage = "";
 
-        // Only allow delete in edit mode
         if (!CurrentEntryDbId.HasValue) return;
         if (UserSession.CurrentUserId is null) return;
 
-        // Confirm delete (prevents accidental deletion)
         var ok = await JS.InvokeAsync<bool>("confirm", "Delete this entry?");
         if (!ok) return;
 
@@ -679,7 +752,6 @@
         {
             var userId = UserSession.CurrentUserId.Value;
 
-            // Find and remove
             var existing = await DB.JournalEntries
                 .FirstOrDefaultAsync(e => e.UserId == userId && e.Id == CurrentEntryDbId.Value);
 
