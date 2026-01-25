@@ -1,0 +1,111 @@
+﻿@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+@* 
+    RichTextEditor Component
+    ------------------------
+*@
+
+<div class="rte-wrap">
+    <div class="rte-toolbar" role="toolbar" aria-label="Formatting toolbar">
+        <button type="button" class="rte-btn" title="Bold" @onclick="BoldAsync"><b>B</b></button>
+        <button type="button" class="rte-btn" title="Italic" @onclick="ItalicAsync"><i>I</i></button>
+        <button type="button" class="rte-btn" title="Strikethrough" @onclick="StrikeAsync"><s>S</s></button>
+
+        <span class="rte-sep" aria-hidden="true"></span>
+
+        <button type="button" class="rte-btn" title="Heading" @onclick="H2Async">H</button>
+        <button type="button" class="rte-btn" title="Bullet list" @onclick="BulletsAsync">•≡</button>
+        <button type="button" class="rte-btn" title="Numbered list" @onclick="NumbersAsync">1≡</button>
+
+        <span class="rte-sep" aria-hidden="true"></span>
+
+        <button type="button" class="rte-btn" title="Insert link" @onclick="LinkAsync">🔗</button>
+        <button type="button" class="rte-btn" title="Remove link" @onclick="UnlinkAsync">⨯</button>
+    </div>
+
+    <div id="@EditorId"
+         class="rte-editor"
+         contenteditable="true"
+         data-placeholder="@Placeholder"
+         @oninput="OnEditorInput">
+    </div>
+</div>
+
+@code {
+    // two-way binding: parent uses @bind-Html
+    [Parameter] public string Html { get; set; } = "";
+    [Parameter] public EventCallback<string> HtmlChanged { get; set; }
+
+    [Parameter] public string Placeholder { get; set; } = "Type...";
+
+    private string EditorId { get; } = $"rte_{Guid.NewGuid():N}";
+    private bool _ready = false;
+    private bool _applyFromParent = false;
+
+    protected override void OnParametersSet()
+    {
+        // When parent loads entry and changes Html, we apply it in editor after render.
+        _applyFromParent = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) _ready = true;
+
+        if (_ready && _applyFromParent)
+        {
+            _applyFromParent = false;
+            await SafeSetHtmlAsync(Html);
+        }
+    }
+
+    private async Task OnEditorInput()
+    {
+        if (!_ready) return;
+
+        var html = await SafeGetHtmlAsync();
+        await HtmlChanged.InvokeAsync(html);
+    }
+
+    private async Task<string> SafeGetHtmlAsync()
+    {
+        try { return await JS.InvokeAsync<string>("rte.getHtml", EditorId); }
+        catch { return Html ?? ""; }
+    }
+
+    private async Task SafeSetHtmlAsync(string html)
+    {
+        try { await JS.InvokeVoidAsync("rte.setHtml", EditorId, html ?? ""); }
+        catch { }
+    }
+
+    private async Task ExecAsync(string cmd)
+    {
+        if (!_ready) return;
+        try { await JS.InvokeVoidAsync("rte.exec", EditorId, cmd, (object?)null); }
+        catch { }
+    }
+
+    private async Task FormatAsync(string tag)
+    {
+        if (!_ready) return;
+        try { await JS.InvokeVoidAsync("rte.formatBlock", EditorId, tag); }
+        catch { }
+    }
+
+    private async Task LinkAsync()
+    {
+        if (!_ready) return;
+        try { await JS.InvokeVoidAsync("rte.createLinkWithPrompt", EditorId); }
+        catch { }
+    }
+
+    private async Task UnlinkAsync() => await ExecAsync("unlink");
+    private async Task BoldAsync() => await ExecAsync("bold");
+    private async Task ItalicAsync() => await ExecAsync("italic");
+    private async Task StrikeAsync() => await ExecAsync("strikeThrough");
+    private async Task BulletsAsync() => await ExecAsync("insertUnorderedList");
+    private async Task NumbersAsync() => await ExecAsync("insertOrderedList");
+    private async Task H2Async() => await FormatAsync("H2");
+}
