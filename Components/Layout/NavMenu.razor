@@ -17,6 +17,10 @@
             </div>
 
             <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/calendar">Calendar</NavLink>
+            </div>
+
+            <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/entries">Entries</NavLink>
             </div>
 
@@ -46,7 +50,7 @@
 @code {
     protected override void OnInitialized()
     {
-        // I subscribe so the nav updates immediately after login/logout
+        // Subscribe so the nav updates immediately after login/logout
         UserSession.OnChange += HandleUserStateChanged;
     }
 
@@ -63,7 +67,7 @@
 
     public void Dispose()
     {
-        // I unsubscribe to avoid memory leaks
+        // Unsubscribe to avoid memory leaks
         UserSession.OnChange -= HandleUserStateChanged;
     }
 }

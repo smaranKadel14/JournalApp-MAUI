@@ -1,0 +1,204 @@
+﻿@page "/calendar"
+
+@using Microsoft.EntityFrameworkCore
+@using JournalApp.Models
+
+@inject JournalApp.Services.UserService UserSession
+@inject JournalApp.Data.AppDbContext DB
+@inject NavigationManager Nav
+
+<div class="cal-wrap">
+
+    <div class="cal-topbar">
+        <div class="cal-title">
+            <div class="cal-icon">📅</div>
+            <div>
+                <div class="cal-heading">Calendar</div>
+                <div class="cal-sub">Navigate your journal by date</div>
+            </div>
+        </div>
+
+        <div class="cal-actions">
+            <button class="cal-btn ghost" @onclick="GoToday">Today</button>
+            <button class="cal-btn" @onclick="CreateToday">New Entry</button>
+        </div>
+    </div>
+
+    <div class="cal-toolbar">
+        <button class="cal-nav" @onclick="PrevMonth" aria-label="Previous month">‹</button>
+        <div class="cal-month">@CurrentMonth.ToString("MMMM yyyy")</div>
+        <button class="cal-nav" @onclick="NextMonth" aria-label="Next month">›</button>
+    </div>
+
+    <div class="cal-grid">
+        @foreach (var name in DayNames)
+        {
+            <div class="cal-dow">@name</div>
+        }
+
+        @foreach (var cell in Cells)
+        {
+            var day = cell.Date.Date;
+            var isToday = day == DateTime.Today;
+            var isMuted = !cell.InCurrentMonth;
+
+            EntriesByDay.TryGetValue(day, out var dayEntries);
+            dayEntries ??= EmptyEntries;
+
+            <div class="cal-cell @(isMuted ? "muted" : "") @(isToday ? "today" : "")"
+                 @onmouseenter="() => HoveredDay = day"
+                 @onmouseleave="() => HoveredDay = null">
+
+                <div class="cal-cell-head">
+                    <div class="cal-daynum">@cell.Date.Day</div>
+
+                    <button class="cal-plus @(HoveredDay == day ? "show" : "")"
+                            title="Create entry"
+                            @onclick="() => OpenDay(day)">
+                        +
+                    </button>
+                </div>
+
+                <div class="cal-events">
+                    @foreach (var e in dayEntries.Take(3))
+                    {
+                        <button class="cal-chip"
+                                title="Open entry"
+                                @onclick="() => OpenEntry(e.Id)">
+                            <div class="chip-title">@TrimTo(e.Title, 22)</div>
+                            <div class="chip-sub">@FormatMood(e.Mood)</div>
+                        </button>
+                    }
+
+                    @if (dayEntries.Count > 3)
+                    {
+                        <div class="cal-more">+@(dayEntries.Count - 3) more</div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+@code {
+    private static readonly string[] DayNames = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    private DateTime CurrentMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private List<CalendarCell> Cells = new();
+    private Dictionary<DateTime, List<JournalEntry>> EntriesByDay = new();
+    private DateTime? HoveredDay;
+
+    private static readonly List<JournalEntry> EmptyEntries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        await LoadMonthAsync();
+    }
+
+    private void OpenDay(DateTime date)
+    {
+        var iso = date.ToString("yyyy-MM-dd");
+        Nav.NavigateTo($"/new-entry?date={iso}");
+    }
+
+    private void OpenEntry(int entryId)
+    {
+        Nav.NavigateTo($"/new-entry/{entryId}");
+    }
+
+    private async Task PrevMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(-1);
+        await LoadMonthAsync();
+    }
+
+    private async Task NextMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(1);
+        await LoadMonthAsync();
+    }
+
+    private async Task GoToday()
+    {
+        CurrentMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+        await LoadMonthAsync();
+    }
+
+    private void CreateToday()
+    {
+        OpenDay(DateTime.Today);
+    }
+
+    private async Task LoadMonthAsync()
+    {
+        BuildCellsMondayStart();
+        await LoadEntriesForMonthAsync();
+        StateHasChanged();
+    }
+
+    // Month grid with Monday as first day (like your screenshot)
+    private void BuildCellsMondayStart()
+    {
+        Cells.Clear();
+
+        var first = CurrentMonth.Date;                 // first day of month
+        int offset = ((int)first.DayOfWeek + 6) % 7;   // convert Sunday(0) -> 6, Monday(1)->0 ...
+        var start = first.AddDays(-offset);            // start from Monday
+
+        for (int i = 0; i < 42; i++)
+        {
+            var d = start.AddDays(i);
+            Cells.Add(new CalendarCell(d, d.Month == CurrentMonth.Month));
+        }
+    }
+
+    private async Task LoadEntriesForMonthAsync()
+    {
+        EntriesByDay.Clear();
+
+        var userId = UserSession.CurrentUserId!.Value;
+        var start = CurrentMonth.Date;
+        var end = CurrentMonth.AddMonths(1).Date;
+
+        // Load entries in this month (date-only logic)
+        var rows = await DB.JournalEntries
+            .Where(e => e.UserId == userId && e.EntryDate >= start && e.EntryDate < end)
+            .OrderBy(e => e.EntryDate)
+            .ThenByDescending(e => e.UpdatedAt)
+            .ToListAsync();
+
+        foreach (var e in rows)
+        {
+            var day = e.EntryDate.Date;
+            if (!EntriesByDay.TryGetValue(day, out var list))
+            {
+                list = new List<JournalEntry>();
+                EntriesByDay[day] = list;
+            }
+            list.Add(e);
+        }
+    }
+
+    private static string TrimTo(string? s, int len)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return "(No title)";
+        s = s.Trim();
+        return s.Length <= len ? s : s.Substring(0, len - 1) + "…";
+    }
+
+    private static string FormatMood(string? mood)
+    {
+        if (string.IsNullOrWhiteSpace(mood)) return "Mood: Neutral";
+        return $"Mood: {mood}";
+    }
+
+    private record CalendarCell(DateTime Date, bool InCurrentMonth);
+}

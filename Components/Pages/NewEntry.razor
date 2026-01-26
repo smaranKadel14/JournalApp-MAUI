@@ -139,6 +139,10 @@
     // Routing / Mode
     // -------------------------
 
+    [SupplyParameterFromQuery(Name = "date")]
+    [Parameter] public string? Date { get; set; }
+
+
     // /new-entry/{EntryId:int} will populate this parameter
     [Parameter] public int? EntryId { get; set; }
 
@@ -230,6 +234,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+
+        if (!string.IsNullOrWhiteSpace(Date) && DateTime.TryParse(Date, out var parsed))
+        {
+            EntryDate = parsed.Date;
+        }
+
         // Must be logged in
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
         {
