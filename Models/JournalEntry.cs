@@ -26,6 +26,12 @@ public class JournalEntry
     [Required]
     public string Mood { get; set; } = "Neutral";
 
+    // Store secondary moods as JSON string
+    public string SecondaryMoods { get; set; } = "[]";
+
+    // Store tags as JSON string
+    public string Tags { get; set; } = "[]";
+
     [Required]
     public int UserId { get; set; }
 

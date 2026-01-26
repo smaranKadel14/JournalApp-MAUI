@@ -11,9 +11,9 @@ namespace JournalApp.Data
         {
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-            // For migrations I use a simple local SQLite file path
-            // (EF tools need something they can access at design-time)
-            optionsBuilder.UseSqlite("Data Source=journal.migrations.db");
+            // Use the same path as runtime for consistency
+            // This ensures migrations and runtime use the same database
+            optionsBuilder.UseSqlite("Data Source=journal.db");
 
             return new AppDbContext(optionsBuilder.Options);
         }

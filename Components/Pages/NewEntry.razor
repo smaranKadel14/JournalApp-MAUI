@@ -13,6 +13,7 @@
 @using Microsoft.JSInterop
 @using JournalApp.Models
 @using JournalApp.Components.Shared
+@using System.Text.Json;
 
 @inject IJSRuntime JS
 @inject JournalApp.Services.UserService UserSession
@@ -300,6 +301,18 @@
         if (!MoodMap.ContainsKey(PrimaryMoodGroup))
             PrimaryMoodGroup = "Neutral";
 
+        // Deserialize secondary moods and tags
+        try
+        {
+            SecondaryMoods = JsonSerializer.Deserialize<List<string>>(existing.SecondaryMoods ?? "[]") ?? new List<string>();
+            SelectedTags = JsonSerializer.Deserialize<List<string>>(existing.Tags ?? "[]") ?? new List<string>();
+        }
+        catch
+        {
+            SecondaryMoods = new List<string>();
+            SelectedTags = new List<string>();
+        }
+
         CreatedAt = existing.CreatedAt;
         UpdatedAt = existing.UpdatedAt;
         EntryDate = existing.EntryDate.Date;
@@ -334,8 +347,21 @@
         if (!MoodMap.ContainsKey(PrimaryMoodGroup))
             PrimaryMoodGroup = "Neutral";
 
+        // Deserialize secondary moods and tags
+        try
+        {
+            SecondaryMoods = JsonSerializer.Deserialize<List<string>>(existing.SecondaryMoods ?? "[]") ?? new List<string>();
+            SelectedTags = JsonSerializer.Deserialize<List<string>>(existing.Tags ?? "[]") ?? new List<string>();
+        }
+        catch
+        {
+            SecondaryMoods = new List<string>();
+            SelectedTags = new List<string>();
+        }
+
         EntryDate = existing.EntryDate.Date;
         CreatedAt = existing.CreatedAt;
+        UpdatedAt = existing.UpdatedAt;
         UpdatedAt = existing.UpdatedAt;
 
         InfoMessage = "Editing an existing entry.";
@@ -392,6 +418,8 @@
                 existing.Title = Title.Trim();
                 existing.Content = Content;
                 existing.Mood = PrimaryMoodGroup;
+                existing.SecondaryMoods = JsonSerializer.Serialize(SecondaryMoods);
+                existing.Tags = JsonSerializer.Serialize(SelectedTags);
                 existing.EntryDate = day;
                 existing.UpdatedAt = DateTime.UtcNow;
 
@@ -410,6 +438,8 @@
                 existingForDay.Title = Title.Trim();
                 existingForDay.Content = Content;
                 existingForDay.Mood = PrimaryMoodGroup;
+                existingForDay.SecondaryMoods = JsonSerializer.Serialize(SecondaryMoods);
+                existingForDay.Tags = JsonSerializer.Serialize(SelectedTags);
                 existingForDay.UpdatedAt = DateTime.UtcNow;
 
                 CurrentEntryDbId = existingForDay.Id;
@@ -425,6 +455,8 @@
                 Title = Title.Trim(),
                 Content = Content,
                 Mood = PrimaryMoodGroup,
+                SecondaryMoods = JsonSerializer.Serialize(SecondaryMoods),
+                Tags = JsonSerializer.Serialize(SelectedTags),
                 UserId = userId,
                 EntryDate = day,
                 CreatedAt = DateTime.UtcNow,
