@@ -15,9 +15,13 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Ensure EntryDate is always treated as "date-only" in our logic
+        modelBuilder.Entity<JournalEntry>()
+            .Property(e => e.EntryDate)
+            .HasColumnType("DATE");
+
         modelBuilder.Entity<JournalEntry>()
             .HasIndex(e => new { e.UserId, e.EntryDate })
-            .IsUnique(); // Enforces ONLY one entry per user per day
+            .IsUnique();
     }
+
 }

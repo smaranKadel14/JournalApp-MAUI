@@ -12,4 +12,7 @@ public class User
     public string Email { get; set; } = string.Empty;
     [Required]
     public string Password { get; set; } = string.Empty; // In a real app, you'd hash this!
+
+    // Navigation
+    public ICollection<JournalEntry> JournalEntries { get; set; } = new List<JournalEntry>();
 }
