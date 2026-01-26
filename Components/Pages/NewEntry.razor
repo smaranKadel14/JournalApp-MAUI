@@ -2,7 +2,8 @@
 @page "/new-entry/{EntryId:int}"
 
 @*
-    NEW ENTRY PAGE
+    NEW ENTRY PAGE (Create + Update + Delete)
+    ----------------------------------------
 *@
 
 @using Microsoft.AspNetCore.Components
@@ -72,7 +73,7 @@
            type="text"
            placeholder="Enter title..."
            @bind="Title"
-           @oninput="@(_ => TouchUpdated())" />
+           @bind:after="TouchUpdated" />
 
     <!-- Date + Category -->
     <div class="row">
@@ -92,7 +93,9 @@
             <label>Category</label>
 
             @* Category currently UI-only (not stored in DB) *@
-            <select class="input" @bind="Category" @bind:after="TouchUpdated">
+            <select class="input"
+                    @bind="Category"
+                    @bind:after="TouchUpdated">
                 @foreach (var c in Categories)
                 {
                     <option value="@c">@c</option>
@@ -165,7 +168,7 @@
     private readonly Dictionary<string, List<string>> MoodMap = new()
     {
         ["Positive"] = new() { "Happy", "Excited", "Relaxed", "Grateful", "Confident" },
-        ["Neutral"]  = new() { "Calm", "Thoughtful", "Curious", "Nostalgic", "Bored" },
+        ["Neutral"] = new() { "Calm", "Thoughtful", "Curious", "Nostalgic", "Bored" },
         ["Negative"] = new() { "Sad", "Angry", "Stressed", "Lonely", "Anxious" }
     };
 

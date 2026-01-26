@@ -34,7 +34,7 @@ namespace JournalApp.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
-                    EntryDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EntryDate = table.Column<DateTime>(type: "DATE", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Mood = table.Column<string>(type: "TEXT", nullable: false),

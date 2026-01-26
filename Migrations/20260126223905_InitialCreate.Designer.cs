@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JournalApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260126012429_InitialCreate")]
+    [Migration("20260126223905_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -34,7 +34,7 @@ namespace JournalApp.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("EntryDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("DATE");
 
                     b.Property<string>("Mood")
                         .IsRequired()
@@ -84,12 +84,17 @@ namespace JournalApp.Migrations
             modelBuilder.Entity("JournalApp.Models.JournalEntry", b =>
                 {
                     b.HasOne("JournalApp.Models.User", "User")
-                        .WithMany()
+                        .WithMany("JournalEntries")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JournalApp.Models.User", b =>
+                {
+                    b.Navigation("JournalEntries");
                 });
 #pragma warning restore 612, 618
         }

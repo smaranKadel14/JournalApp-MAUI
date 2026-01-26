@@ -1,6 +1,18 @@
 ﻿/* 
     NewEntry Page Styles
     --------------------
+    This CSS is ONLY for the page layout + common form blocks.
+
+    Why is it smaller now?
+    - MoodPicker, TagPicker, RichTextEditor each have their own scoped CSS files:
+        Components/Shared/MoodPicker.razor.css
+        Components/Shared/TagPicker.razor.css
+        Components/Shared/RichTextEditor.razor.css
+
+    Benefit:
+    - Less CSS in one file
+    - Styles are scoped to the component automatically
+    - Easier to debug (no accidental style collisions)
 */
 
 /* Container */
