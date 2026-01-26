@@ -43,12 +43,14 @@ namespace JournalApp
 
             var app = builder.Build();
 
-            // ✅ 3) Create database + tables automatically (first run)
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                db.Database.EnsureCreated();
+
+                // I apply EF Core migrations automatically when the app starts
+                db.Database.Migrate();
             }
+
 
             return app;
         }

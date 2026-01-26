@@ -1,23 +1,19 @@
-﻿using System;
-using System.IO;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace JournalApp.Data
 {
-    // This class is ONLY for EF migrations (design-time).
-    // It tells EF how to create AppDbContext when running Add-Migration / Update-Database.
+    // I use this only for EF Core migrations (design-time).
+    // MAUI runtime uses FileSystem.AppDataDirectory in MauiProgram.cs.
     public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         public AppDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-            // Use a simple DB path for migrations time (project folder).
-            // This does NOT affect the runtime MAUI DB path unless you also change it there.
-            var dbPath = Path.Combine(AppContext.BaseDirectory, "journal.db");
-
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            // For migrations I use a simple local SQLite file path
+            // (EF tools need something they can access at design-time)
+            optionsBuilder.UseSqlite("Data Source=journal.migrations.db");
 
             return new AppDbContext(optionsBuilder.Options);
         }
