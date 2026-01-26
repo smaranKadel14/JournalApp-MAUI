@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JournalApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260124065549_EntryDateAndTimestamps")]
-    partial class EntryDateAndTimestamps
+    [Migration("20260126012429_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
