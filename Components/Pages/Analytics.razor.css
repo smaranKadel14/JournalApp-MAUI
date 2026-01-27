@@ -1,0 +1,362 @@
+﻿/* =========================================
+   Analytics (Airy + consistent typography)
+========================================= */
+
+.analytics-shell {
+    margin-top: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 18px;
+    box-shadow: 0 10px 24px var(--shadow);
+    /* Mood colors */
+    --mood-pos: #22c55e; /* green */
+    --mood-neu: #94a3b8; /* slate/gray */
+    --mood-neg: #ef4444; /* red */
+}
+
+/* Header */
+.analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.analytics-title {
+    min-width: 0;
+}
+
+.analytics-h {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.2px;
+}
+
+.analytics-sub {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.analytics-range {
+    flex-shrink: 0;
+}
+
+.analytics-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(225, 107, 122, 0.10);
+    color: var(--accent);
+    border: 1px solid rgba(225, 107, 122, 0.30);
+    font-weight: 900;
+    font-size: 12px;
+}
+
+/* Controls */
+.analytics-controls {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 14px;
+    align-items: end;
+}
+
+.control-field {
+    display: grid;
+    gap: 6px;
+}
+
+.control-label {
+    font-weight: 900;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.control-input {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 10px 24px var(--shadow);
+}
+
+.date-input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-weight: 900;
+}
+
+.control-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Messages */
+.analytics-msg {
+    margin-top: 12px;
+}
+
+/* Reusable card */
+.analytics-card {
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 10px 24px var(--shadow);
+}
+
+.card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.card-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+}
+
+.card-desc {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.muted-note {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+/* Two-column sections */
+.grid-2 {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Mood section */
+.mood-wrap {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 16px;
+    align-items: center;
+}
+
+.mood-pie {
+    display: grid;
+    place-items: center;
+}
+
+.mood-bars {
+    display: grid;
+    gap: 12px;
+}
+
+/* Color Legend */
+.mood-legend {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.legend-title {
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--muted);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.legend-items {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    display: inline-block;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.legend-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.mood-row {
+    display: grid;
+    gap: 8px;
+}
+
+.mood-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.mood-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mood-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+.mood-name {
+    font-weight: 900;
+    font-size: 12px;
+    color: var(--text);
+}
+
+.mood-val {
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* Bar styles (also used by tags) */
+.bar-track {
+    height: 12px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    width: 100%;
+}
+
+.bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    min-width: 4px;
+    transition: width 0.3s ease;
+    display: block;
+}
+
+/* Missed days */
+.missed-wrap {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.missed-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(225, 107, 122, 0.10);
+    border: 1px solid rgba(225, 107, 122, 0.25);
+    color: var(--accent);
+    font-weight: 900;
+    font-size: 12px;
+}
+
+.missed-more {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-weight: 900;
+    font-size: 12px;
+}
+
+/* Tag lists */
+.bar-list {
+    margin-top: 12px;
+    display: grid;
+    gap: 12px;
+}
+
+.bar-item {
+    display: grid;
+    gap: 8px;
+}
+
+.bar-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.bar-name {
+    font-weight: 900;
+    font-size: 12px;
+    color: var(--text);
+}
+
+.bar-count {
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* Trend */
+.trend-box {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface-2);
+    padding: 12px;
+}
+
+.trend-note {
+    margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 950px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .control-actions {
+        justify-content: flex-start;
+    }
+
+    .mood-wrap {
+        grid-template-columns: 1fr;
+    }
+}

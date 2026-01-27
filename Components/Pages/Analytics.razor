@@ -1,49 +1,50 @@
 ﻿@using JournalApp.Services
 @using Microsoft.AspNetCore.Components.Forms
+@using System.Linq
 
 @inject AnalyticsService AnalyticsService
 @inject JournalApp.Services.UserService UserSession
 
-@* 
+@*
    Analytics Component (Date-range filterable)
-   - Mood Distribution (Pie + bars)
-   - Most Frequent Mood
-   - Daily Streak + Longest Streak
+   - Mood Distribution (Pie + progress bars)
    - Missed Days list
-   - Most Used Tags (bars)
-   - Tag Breakdown (% of entries per tag-category)
+   - Most Used Tags
+   - Tag Breakdown
    - Word Count Trend (avg words per entry per day)
 *@
 
-<div class="settings-card" style="margin-top:14px;">
-    <div class="section-head">
-        <div>
-            <div class="section-title">Analytics & Insights</div>
-            <div class="section-desc">
+<section class="analytics-shell">
+    <div class="analytics-header">
+        <div class="analytics-title">
+            <h2 class="analytics-h">Analytics &amp; Insights</h2>
+            <p class="analytics-sub">
                 Filter by date range to see your mood, streaks, tags, missed days, and writing trends.
-            </div>
+            </p>
         </div>
 
-        <div class="badge">@($"{FromDate:MMM dd} → {ToDate:MMM dd}")</div>
+        <div class="analytics-range">
+            <span class="analytics-badge">@($"{FromDate:MMM dd} → {ToDate:MMM dd}")</span>
+        </div>
     </div>
 
     <!-- Date range controls -->
-    <div class="export-grid" style="margin-top:12px;">
-        <div class="export-field">
-            <div class="export-label">From</div>
-            <div class="export-input">
+    <div class="analytics-controls">
+        <div class="control-field">
+            <div class="control-label">From</div>
+            <div class="control-input">
                 <InputDate class="date-input" @bind-Value="FromDate" />
             </div>
         </div>
 
-        <div class="export-field">
-            <div class="export-label">To</div>
-            <div class="export-input">
+        <div class="control-field">
+            <div class="control-label">To</div>
+            <div class="control-input">
                 <InputDate class="date-input" @bind-Value="ToDate" />
             </div>
         </div>
 
-        <div class="export-actions">
+        <div class="control-actions">
             <button type="button" class="btn-pink" @onclick="LoadAnalytics" disabled="@IsLoading">
                 <span class="btn-ico" aria-hidden="true">↻</span>
                 <span>@(IsLoading ? "Loading..." : "Refresh")</span>
@@ -53,59 +54,35 @@
 
     @if (!string.IsNullOrWhiteSpace(Error))
     {
-        <div class="error-box" style="margin-top:12px;">@Error</div>
+        <div class="error-box analytics-msg">@Error</div>
     }
 
     @if (Result is not null)
     {
-        <!-- Summary cards -->
-        <div style="margin-top:14px; display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-desc">Most Frequent Mood</div>
-                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.MostFrequentMood</div>
-            </div>
+        <!-- Mood Distribution + Missed Days -->
+        <div class="grid-2">
+            <div class="analytics-card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">Mood Distribution</div>
+                        <div class="card-desc">% of Positive / Neutral / Negative moods</div>
+                    </div>
+                </div>
 
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-desc">Daily Streak</div>
-                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.CurrentStreak days</div>
-                <div class="section-desc" style="margin-top:6px;">(Ending at @ToDate.ToString("MMM dd"))</div>
-            </div>
-
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-desc">Longest Streak</div>
-                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.LongestStreak days</div>
-                <div class="section-desc" style="margin-top:6px;">(Within this range)</div>
-            </div>
-
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-desc">Total Entries</div>
-                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.TotalEntries</div>
-            </div>
-        </div>
-
-        <!-- Mood Distribution -->
-        <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-title" style="font-size:14px;">Mood Distribution</div>
-                <div class="section-desc" style="margin-top:4px;">% of Positive / Neutral / Negative moods</div>
-
-                <div style="margin-top:12px; display:flex; gap:14px; align-items:center;">
-                    <!-- Pie chart (SVG) -->
-                    <div style="width:160px; height:160px;">
+                <div class="mood-wrap">
+                    <!-- Pie chart -->
+                    <div class="mood-pie">
                         @if (Result.TotalEntries == 0)
                         {
-                            <div class="section-desc" style="margin-top:20px;">No data</div>
+                            <div class="card-desc" style="margin-top:18px;">No data</div>
                         }
                         else
                         {
-                            <svg viewBox="0 0 42 42" width="160" height="160" role="img" aria-label="Mood pie chart">
+                            <svg viewBox="0 0 42 42" width="170" height="170" role="img" aria-label="Mood pie chart">
                                 @{
-                                    // Values
                                     var p = GetPct("Positive");
                                     var n = GetPct("Neutral");
                                     var g = GetPct("Negative");
-
-                                    // Convert percent to circle segments (circumference = 100)
                                     var offset = 25; // start position
                                 }
 
@@ -115,7 +92,7 @@
 
                                 <!-- Positive -->
                                 <circle cx="21" cy="21" r="15.9155" fill="transparent"
-                                        stroke="var(--accent)" stroke-width="8"
+                                        stroke="var(--mood-pos)" stroke-width="8"
                                         stroke-dasharray="@($"{p} {100 - p}")"
                                         stroke-dashoffset="@offset" />
 
@@ -124,7 +101,7 @@
                                     offset -= p;
                                 }
                                 <circle cx="21" cy="21" r="15.9155" fill="transparent"
-                                        stroke="rgba(225,107,122,0.55)" stroke-width="8"
+                                        stroke="var(--mood-neu)" stroke-width="8"
                                         stroke-dasharray="@($"{n} {100 - n}")"
                                         stroke-dashoffset="@offset" />
 
@@ -133,48 +110,64 @@
                                     offset -= n;
                                 }
                                 <circle cx="21" cy="21" r="15.9155" fill="transparent"
-                                        stroke="rgba(225,107,122,0.28)" stroke-width="8"
+                                        stroke="var(--mood-neg)" stroke-width="8"
                                         stroke-dasharray="@($"{g} {100 - g}")"
                                         stroke-dashoffset="@offset" />
                             </svg>
                         }
                     </div>
 
-                    <!-- Bars + labels -->
-                    <div style="flex:1; display:grid; gap:10px;">
-                        @MoodRow("Positive", "var(--accent)")
-                        @MoodRow("Neutral", "rgba(225,107,122,0.55)")
-                        @MoodRow("Negative", "rgba(225,107,122,0.28)")
+                    <!-- Progress bars beside pie -->
+                    <div class="mood-bars">
+                        @MoodRow("Positive", "var(--mood-pos)")
+                        @MoodRow("Neutral", "var(--mood-neu)")
+                        @MoodRow("Negative", "var(--mood-neg)")
+                    </div>
+
+                    <!-- Color Legend -->
+                    <div class="mood-legend">
+                        <div class="legend-title">Color Index</div>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--mood-pos);"></span>
+                                <span class="legend-label">Positive</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--mood-neu);"></span>
+                                <span class="legend-label">Neutral</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--mood-neg);"></span>
+                                <span class="legend-label">Negative</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Missed days -->
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-title" style="font-size:14px;">Missed Days</div>
-                <div class="section-desc" style="margin-top:4px;">
-                    Dates in this range with no entries.
+            <div class="analytics-card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">Missed Days</div>
+                        <div class="card-desc">Dates in this range with no entries.</div>
+                    </div>
                 </div>
 
                 @if (Result.MissedDays.Count == 0)
                 {
-                    <div class="section-desc" style="margin-top:12px;">No missed days 🎉</div>
+                    <div class="card-desc" style="margin-top:12px;">No missed days 🎉</div>
                 }
                 else
                 {
-                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
+                    <div class="missed-wrap">
                         @foreach (var d in Result.MissedDays.Take(24))
                         {
-                            <span class="badge" style="background:rgba(225,107,122,0.10);">
-                                @d.ToString("MMM dd")
-                            </span>
+                            <span class="missed-chip">@d.ToString("MMM dd")</span>
                         }
 
                         @if (Result.MissedDays.Count > 24)
                         {
-                            <span class="badge" style="background:rgba(0,0,0,0.06); color:var(--muted); border-color:var(--border);">
-                                +@(Result.MissedDays.Count - 24) more
-                            </span>
+                            <span class="missed-more">+@(Result.MissedDays.Count - 24) more</span>
                         }
                     </div>
                 }
@@ -182,31 +175,34 @@
         </div>
 
         <!-- Tags -->
-        <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-            <!-- Most Used Tags -->
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-title" style="font-size:14px;">Most Used Tags</div>
-                <div class="section-desc" style="margin-top:4px;">Top tags used in this date range</div>
+        <div class="grid-2">
+            <div class="analytics-card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">Most Used Tags</div>
+                        <div class="card-desc">Top tags used in this date range</div>
+                    </div>
+                </div>
 
                 @if (Result.TopTags.Count == 0)
                 {
-                    <div class="section-desc" style="margin-top:12px;">No tags found.</div>
+                    <div class="card-desc" style="margin-top:12px;">No tags found.</div>
                 }
                 else
                 {
                     var max = Result.TopTags.Max(x => x.Count);
-                    <div style="margin-top:12px; display:grid; gap:10px;">
+                    <div class="bar-list">
                         @foreach (var t in Result.TopTags)
                         {
                             var pct = max == 0 ? 0 : (int)Math.Round(t.Count * 100.0 / max);
 
-                            <div>
-                                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:12px;">
-                                    <span>@t.Name</span>
-                                    <span style="color:var(--muted)">@t.Count</span>
+                            <div class="bar-item">
+                                <div class="bar-top">
+                                    <span class="bar-name">@t.Name</span>
+                                    <span class="bar-count">@t.Count</span>
                                 </div>
-                                <div style="height:10px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden;">
-                                    <div style="height:100%; width:@pct%; background:var(--accent); opacity:.85;"></div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width:@pct%; opacity:.85;"></div>
                                 </div>
                             </div>
                         }
@@ -214,30 +210,33 @@
                 }
             </div>
 
-            <!-- Tag Breakdown -->
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-title" style="font-size:14px;">Tag Breakdown</div>
-                <div class="section-desc" style="margin-top:4px;">
-                    % of entries per tag-category (Work, Health, Travel, etc.).
-                    <span style="color:var(--muted)">One entry can count in multiple categories.</span>
+            <div class="analytics-card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">Tag Breakdown</div>
+                        <div class="card-desc">
+                            % of entries per tag-category (Work, Health, Travel, etc.).
+                            <span class="muted-note">One entry can count in multiple categories.</span>
+                        </div>
+                    </div>
                 </div>
 
                 @if (Result.TagBreakdown.Count == 0)
                 {
-                    <div class="section-desc" style="margin-top:12px;">No tag breakdown available.</div>
+                    <div class="card-desc" style="margin-top:12px;">No tag breakdown available.</div>
                 }
                 else
                 {
-                    <div style="margin-top:12px; display:grid; gap:10px;">
+                    <div class="bar-list">
                         @foreach (var c in Result.TagBreakdown)
                         {
-                            <div>
-                                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:12px;">
-                                    <span>@c.Name</span>
-                                    <span style="color:var(--muted)">@c.Percent% (@c.Count)</span>
+                            <div class="bar-item">
+                                <div class="bar-top">
+                                    <span class="bar-name">@c.Name</span>
+                                    <span class="bar-count">@c.Percent% (@c.Count)</span>
                                 </div>
-                                <div style="height:10px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden;">
-                                    <div style="height:100%; width:@c.Percent%; background:var(--accent); opacity:.55;"></div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width:@c.Percent%; opacity:.55;"></div>
                                 </div>
                             </div>
                         }
@@ -247,37 +246,36 @@
         </div>
 
         <!-- Word Count Trend -->
-        <div style="margin-top:12px;">
-            <div class="settings-card" style="box-shadow:none;">
-                <div class="section-title" style="font-size:14px;">Word Count Trends</div>
-                <div class="section-desc" style="margin-top:4px;">
-                    Average words per entry over time (per day).
+        <div class="analytics-card">
+            <div class="card-head">
+                <div>
+                    <div class="card-title">Word Count Trends</div>
+                    <div class="card-desc">Average words per entry over time (per day).</div>
+                </div>
+            </div>
+
+            @if (Result.AvgWordsByDay.Count == 0)
+            {
+                <div class="card-desc" style="margin-top:12px;">No data to plot.</div>
+            }
+            else
+            {
+                <div class="trend-box">
+                    <svg viewBox="0 0 700 200" width="100%" height="200" role="img" aria-label="Average word trend">
+                        @{
+                            var points = BuildTrendPoints(Result.AvgWordsByDay, 700, 200, 30);
+                        }
+                        <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="@points" opacity="0.9"></polyline>
+                    </svg>
                 </div>
 
-                @if (Result.AvgWordsByDay.Count == 0)
-                {
-                    <div class="section-desc" style="margin-top:12px;">No data to plot.</div>
-                }
-                else
-                {
-                    <div style="margin-top:12px; border:1px solid var(--border); border-radius:14px; background:var(--surface-2); padding:10px;">
-                        <svg viewBox="0 0 700 200" width="100%" height="200" role="img" aria-label="Average word trend">
-                            @{
-                                var points = BuildTrendPoints(Result.AvgWordsByDay, 700, 200, 30);
-                            }
-                            <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="@points" opacity="0.9"></polyline>
-                        </svg>
-                    </div>
-
-                    <!-- tiny legend -->
-                    <div class="section-desc" style="margin-top:8px;">
-                        Showing @Result.AvgWordsByDay.Count day(s) with entries.
-                    </div>
-                }
-            </div>
+                <div class="card-desc trend-note">
+                    Showing @Result.AvgWordsByDay.Count day(s) with entries.
+                </div>
+            }
         </div>
     }
-</div>
+</section>
 
 @code {
     private DateTime FromDate { get; set; } = DateTime.Today.AddDays(-30);
@@ -347,26 +345,46 @@
         var seq = 0;
 
         builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", "mood-row");
+
+        // top row: dot + label + value
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", "mood-row-top");
 
         builder.OpenElement(seq++, "div");
-        builder.AddAttribute(seq++, "style", "display:flex; justify-content:space-between; font-weight:800; font-size:12px;");
+        builder.AddAttribute(seq++, "class", "mood-left");
+
         builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "mood-dot");
+        builder.AddAttribute(seq++, "style", $"background:{color};");
+        builder.CloseElement();
+
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "mood-name");
         builder.AddContent(seq++, mood);
         builder.CloseElement();
+
+        builder.CloseElement(); // mood-left
+
         builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "style", "color:var(--muted)");
+        builder.AddAttribute(seq++, "class", "mood-val");
         builder.AddContent(seq++, $"{pct}% ({count})");
         builder.CloseElement();
-        builder.CloseElement();
+
+        builder.CloseElement(); // mood-row-top
+
+        // progress bar
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", "bar-track");
 
         builder.OpenElement(seq++, "div");
-        builder.AddAttribute(seq++, "style", "height:10px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden;");
-        builder.OpenElement(seq++, "div");
-        builder.AddAttribute(seq++, "style", $"height:100%; width:{pct}%; background:{color};");
-        builder.CloseElement();
+        builder.AddAttribute(seq++, "class", "bar-fill");
+        builder.AddAttribute(seq++, "style", $"width:{pct}%; background:{color};");
         builder.CloseElement();
 
-        builder.CloseElement();
+        builder.CloseElement(); // bar-track
+
+        builder.CloseElement(); // mood-row
     };
 
     /// <summary>
