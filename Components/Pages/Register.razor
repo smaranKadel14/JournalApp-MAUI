@@ -10,9 +10,11 @@
 
 @using JournalApp.Models
 @using JournalApp.Data
+@using JournalApp.Services
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext DB
 @inject NavigationManager Nav
+@inject PasswordHasherService PasswordHasher
 
 <div class="login-container">
     <div class="login-card">
@@ -70,26 +72,42 @@
     private string errorMessage = "";
 
     /// <summary>
-    /// Handles user registration:
-    /// 1) Validate inputs
+    /// Handles user registration with proper validation and password hashing:
+    /// 1) Validate inputs using ValidationService
     /// 2) Check if email already exists
-    /// 3) Insert user into SQLite database
-    /// 4) Redirect to login
+    /// 3) Hash password using PasswordHasherService
+    /// 4) Insert user into SQLite database
+    /// 5) Redirect to login
     /// </summary>
     private async Task HandleRegister()
     {
         errorMessage = "";
 
-        // 1) Check required fields
-        if (string.IsNullOrWhiteSpace(username) ||
-            string.IsNullOrWhiteSpace(email) ||
-            string.IsNullOrWhiteSpace(password))
+        // 1) Validate username
+        var (usernameValid, usernameError) = ValidationService.ValidateUsername(username);
+        if (!usernameValid)
         {
-            errorMessage = "Please fill in all fields.";
+            errorMessage = usernameError;
             return;
         }
 
-        // 2) Check password confirmation
+        // 2) Validate email
+        var (emailValid, emailError) = ValidationService.ValidateEmail(email);
+        if (!emailValid)
+        {
+            errorMessage = emailError;
+            return;
+        }
+
+        // 3) Validate password
+        var (passwordValid, passwordError) = ValidationService.ValidatePassword(password);
+        if (!passwordValid)
+        {
+            errorMessage = passwordError;
+            return;
+        }
+
+        // 4) Check password confirmation
         if (password != confirmPassword)
         {
             errorMessage = "Passwords do not match!";
@@ -98,7 +116,7 @@
 
         try
         {
-            // 3) Ensure email is unique (prevents duplicates)
+            // 5) Ensure email is unique (prevents duplicates)
             var userExists = await DB.Users.AnyAsync(u => u.Email == email);
             if (userExists)
             {
@@ -106,20 +124,22 @@
                 return;
             }
 
-            // 4) Create User object to save
-            // NOTE: For a real system we must hash passwords. For coursework demo, plain text is acceptable.
+            // 6) Hash the password for security
+            var hashedPassword = PasswordHasher.HashPassword(password);
+
+            // 7) Create User object to save with hashed password
             var newUser = new User
             {
                 Username = username,
                 Email = email,
-                Password = password
+                Password = hashedPassword // Store hashed password, not plain text
             };
 
-            // 5) Add and save to SQLite (journal.db)
+            // 8) Add and save to SQLite (journal.db)
             DB.Users.Add(newUser);
             await DB.SaveChangesAsync();
 
-            // 6) Redirect after successful registration
+            // 9) Redirect after successful registration
             Nav.NavigateTo("/login");
         }
         catch (Exception ex)

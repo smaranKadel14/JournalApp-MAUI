@@ -13,6 +13,7 @@
 @inject UserService UserSession
 @inject AppDbContext DB
 @inject NavigationManager Nav
+@inject PasswordHasherService PasswordHasher
 
 
 
@@ -63,10 +64,11 @@
     private string errorMessage = "";
 
     /// <summary>
-    /// Handles login logic:
+    /// Handles login logic with password verification:
     /// 1) Validate inputs
-    /// 2) Query SQLite (via EF Core) to find matching user
-    /// 3) If found -> redirect to dashboard
+    /// 2) Query SQLite (via EF Core) to find user by username
+    /// 3) Verify hashed password using PasswordHasherService
+    /// 4) If credentials match -> redirect to dashboard
     /// </summary>
     private async Task HandleLogin()
     {
@@ -82,21 +84,21 @@
 
         try
         {
-            // 2) Check if a user exists with given credentials
-            // NOTE: This works the same in SQLite and PostgreSQL; EF Core handles database provider.
+            // 2) Find user by username
             var user = await DB.Users
-                .FirstOrDefaultAsync(u => u.Username == username && u.Password == password);
+                .FirstOrDefaultAsync(u => u.Username == username);
 
-            // 3) If credentials match, redirect to dashboard page
-            if (user != null)
+            // 3) Check if user exists and verify password
+            if (user != null && PasswordHasher.VerifyPassword(user.Password, password))
             {
+                // 4) If credentials match, redirect to dashboard page
                 UserSession.SetCurrentUser(user.Id, user.Username); // save session info (id + username)
                                                                     
                 Nav.NavigateTo("/dashboard");
             }
             else
             {
-                // If no record matches, show error
+                // If no record matches or password is wrong, show error
                 errorMessage = "Invalid username or password.";
             }
         }
