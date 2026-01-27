@@ -60,51 +60,6 @@
 
     @if (Result is not null)
     {
-        <!-- Summary cards -->
-        <div class="summary-grid">
-            <div class="summary-card">
-                <div class="summary-top">
-                    <div class="summary-icon" aria-hidden="true">⭐</div>
-                    <div class="summary-meta">
-                        <div class="summary-label">Most Frequent Mood</div>
-                        <div class="summary-value">@Result.MostFrequentMood</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="summary-card">
-                <div class="summary-top">
-                    <div class="summary-icon" aria-hidden="true">🔥</div>
-                    <div class="summary-meta">
-                        <div class="summary-label">Daily Streak</div>
-                        <div class="summary-value">@Result.CurrentStreak <span class="summary-unit">days</span></div>
-                        <div class="summary-help">(Ending at @ToDate.ToString("MMM dd"))</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="summary-card">
-                <div class="summary-top">
-                    <div class="summary-icon" aria-hidden="true">🏆</div>
-                    <div class="summary-meta">
-                        <div class="summary-label">Longest Streak</div>
-                        <div class="summary-value">@Result.LongestStreak <span class="summary-unit">days</span></div>
-                        <div class="summary-help">(Within this range)</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="summary-card">
-                <div class="summary-top">
-                    <div class="summary-icon" aria-hidden="true">📒</div>
-                    <div class="summary-meta">
-                        <div class="summary-label">Total Entries</div>
-                        <div class="summary-value">@Result.TotalEntries</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Mood Distribution + Missed Days -->
         <div class="grid-2">
             <div class="analytics-card">

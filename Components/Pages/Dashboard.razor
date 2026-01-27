@@ -35,44 +35,48 @@
         </div>
     </header>
 
-    <!-- Stats -->
-    <section class="stats-grid">
-        <!-- Current streak -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon" aria-hidden="true">🔥</div>
-                <div class="stat-meta">
-                    <div class="stat-label">Current Streak</div>
-                    <div class="stat-value">
-                        @CurrentStreak <span class="stat-unit">days</span>
-                    </div>
+    <!-- Analytics Summary Cards -->
+    <section class="summary-grid">
+        <!-- Most Frequent Mood -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">⭐</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Most Frequent Mood</div>
+                    <div class="summary-value">@MostFrequentMood</div>
                 </div>
             </div>
         </div>
 
-        <!-- Most frequent mood -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon" aria-hidden="true">🙂</div>
-                <div class="stat-meta">
-                    <div class="stat-label">Most Frequent Mood</div>
-
-                    <div class="stat-value">
-                        <span class="mood-pill @MoodClass(MostFrequentMood)">
-                            @MostFrequentMood
-                        </span>
-                    </div>
+        <!-- Daily Streak -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">🔥</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Daily Streak</div>
+                    <div class="summary-value">@CurrentStreak <span class="summary-unit">days</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Entries this week -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon" aria-hidden="true">🗓️</div>
-                <div class="stat-meta">
-                    <div class="stat-label">Entries this Week</div>
-                    <div class="stat-value">@EntriesThisWeek</div>
+        <!-- Longest Streak -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">🏆</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Longest Streak</div>
+                    <div class="summary-value">@LongestStreak <span class="summary-unit">days</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Entries -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">📒</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Total Entries</div>
+                    <div class="summary-value">@TotalEntries</div>
                 </div>
             </div>
         </div>
@@ -135,6 +139,13 @@
     private int EntriesThisWeek { get; set; } = 0;
     private string MostFrequentMood { get; set; } = "—";
 
+    // Add this property to provide a value for LongestStreak
+    // Replace the value assignment with your actual logic as needed
+    private int LongestStreak { get; set; } = 0;
+
+    // Add this property to provide the value for TotalEntries
+    private int TotalEntries { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         // If user is not logged in, send them to login page
@@ -183,6 +194,11 @@
 
             // Current streak (count continuous days ending today)
             CurrentStreak = await CalculateCurrentStreakAsync(userId);
+
+            // TODO: Replace with actual logic to get the total number of entries
+            // For example, if you have a list of JournalEntry objects:
+            // TotalEntries = journalEntries.Count;
+            TotalEntries = 0; // Placeholder value
         }
         finally
         {
