@@ -3,7 +3,8 @@
 @* Dashboard:
    - Loads current user's entries
    - Shows stats + recent entries
-   - Button changes: Add Today Entry -> Edit Today Entry if today's entry exists *@
+   - Button changes: Add Today Entry -> Edit Today Entry if today's entry exists
+   - Uses <Analytics /> component below stats *@
 
 @using Microsoft.EntityFrameworkCore
 @using JournalApp.Models
@@ -15,62 +16,92 @@
 
 <div class="dashboard-wrapper">
 
-    <!-- Top header with title, date, and main action button -->
+    <!-- Header -->
     <header class="dash-header">
-        <div class="dash-title">
-            <h1>Dashboard</h1>
-            <p class="subtitle">A quick overview of your journaling</p>
+        <div class="dash-heading">
+            <h1 class="dash-h1">Dashboard</h1>
+            <p class="dash-subtitle">A quick overview of your journaling</p>
         </div>
 
         <div class="dash-actions">
-            <span class="date-label">@DateTime.Today.ToString("MMMM dd, yyyy")</span>
+            <div class="date-chip" title="Today">
+                <span class="chip-ico" aria-hidden="true">📅</span>
+                <span>@DateTime.Today.ToString("MMMM dd, yyyy")</span>
+            </div>
 
-            <!-- Button changes based on whether today's entry exists -->
-            <button class="add-btn" @onclick="GoToTodayEntry">
+            <button class="btn-accent" @onclick="GoToTodayEntry">
                 @(TodayEntryId.HasValue ? "Edit Today Entry" : "+ Add Today Entry")
             </button>
         </div>
     </header>
 
-    <!-- Stats cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <p>Current Streak</p>
-            <div class="stat-big">
-                <span class="stat-number">@CurrentStreak</span>
-                <span class="stat-unit">days</span>
+    <!-- Analytics Summary Cards -->
+    <section class="summary-grid">
+        <!-- Most Frequent Mood -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">⭐</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Most Frequent Mood</div>
+                    <div class="summary-value">@MostFrequentMood</div>
+                </div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <p>Most Frequent Mood</p>
-            <h3>@MostFrequentMood</h3>
+        <!-- Daily Streak -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">🔥</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Daily Streak</div>
+                    <div class="summary-value">@CurrentStreak <span class="summary-unit">days</span></div>
+                </div>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <p>Entries this Week</p>
-            <h3>@EntriesThisWeek</h3>
+        <!-- Longest Streak -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">🏆</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Longest Streak</div>
+                    <div class="summary-value">@LongestStreak <span class="summary-unit">days</span></div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    @* ✅ NEW: Analytics section (separate file component) *@
+        <!-- Total Entries -->
+        <div class="summary-card">
+            <div class="summary-top">
+                <div class="summary-icon" aria-hidden="true">📒</div>
+                <div class="summary-meta">
+                    <div class="summary-label">Total Entries</div>
+                    <div class="summary-value">@TotalEntries</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* ✅ Analytics section *@
     <Analytics />
 
     <!-- Recent Entries -->
     <section class="recent-entries">
         <div class="section-header">
-            <h2>Recent Entries</h2>
+            <h2 class="section-title">Recent Entries</h2>
         </div>
 
         @if (IsLoading)
         {
-            <p>Loading...</p>
+            <p class="loading-text">Loading...</p>
         }
         else if (RecentEntries.Count == 0)
         {
             <div class="empty-state">
                 <p>No entries yet.</p>
-                <button class="ghost-btn" @onclick="@(() => Nav.NavigateTo("/new-entry"))">Write your first entry</button>
+                <button class="ghost-btn" @onclick="@(() => Nav.NavigateTo("/new-entry"))">
+                    Write your first entry
+                </button>
             </div>
         }
         else
@@ -78,7 +109,6 @@
             <div class="entry-list">
                 @foreach (var e in RecentEntries)
                 {
-                    <!-- Clicking an entry opens edit mode -->
                     <div class="entry-item" @onclick="@(() => Nav.NavigateTo($"/new-entry/{e.Id}"))">
                         <div class="entry-left">
                             <div class="entry-date">@e.EntryDate.ToString("MMMM dd")</div>
@@ -106,6 +136,8 @@
     // Dashboard data
     private List<JournalEntry> RecentEntries { get; set; } = new();
     private int CurrentStreak { get; set; } = 0;
+    private int LongestStreak { get; set; } = 0;
+    private int TotalEntries { get; set; } = 0;
     private int EntriesThisWeek { get; set; } = 0;
     private string MostFrequentMood { get; set; } = "—";
 
@@ -137,18 +169,22 @@
                 .Take(10)
                 .ToListAsync();
 
+            // Calculate total entries
+            TotalEntries = await DB.JournalEntries
+                .CountAsync(e => e.UserId == userId);
+
             // Find today's entry Id (if it exists)
             TodayEntryId = await DB.JournalEntries
                 .Where(e => e.UserId == userId && e.EntryDate == today)
                 .Select(e => (int?)e.Id)
                 .FirstOrDefaultAsync();
 
-            // Entries this week (simple approach: last 7 days including today)
+            // Entries this week (last 7 days including today)
             var weekStart = today.AddDays(-6);
             EntriesThisWeek = await DB.JournalEntries
                 .CountAsync(e => e.UserId == userId && e.EntryDate >= weekStart && e.EntryDate <= today);
 
-            // Most frequent mood (based on stored Mood field)
+            // Most frequent mood (based on Mood field)
             MostFrequentMood = RecentEntries
                 .GroupBy(e => e.Mood)
                 .OrderByDescending(g => g.Count())
@@ -157,6 +193,9 @@
 
             // Current streak (count continuous days ending today)
             CurrentStreak = await CalculateCurrentStreakAsync(userId);
+
+            // Calculate longest streak
+            LongestStreak = await CalculateLongestStreakAsync(userId);
         }
         finally
         {
@@ -166,20 +205,17 @@
 
     private void GoToTodayEntry()
     {
-        // If today's entry exists, go to edit mode
         if (TodayEntryId.HasValue)
         {
             Nav.NavigateTo($"/new-entry/{TodayEntryId.Value}");
             return;
         }
 
-        // Otherwise, go to new entry page (create mode)
         Nav.NavigateTo("/new-entry");
     }
 
     private async Task<int> CalculateCurrentStreakAsync(int userId)
     {
-        // Load last ~60 days to calculate streak safely
         var today = DateTime.Today;
         var start = today.AddDays(-60);
 
@@ -190,11 +226,9 @@
             .OrderByDescending(d => d)
             .ToListAsync();
 
-        // No entries today = streak is 0 (you can change this rule if needed)
         if (!dates.Contains(today))
             return 0;
 
-        // Count consecutive days backwards from today
         var streak = 0;
         var check = today;
 
@@ -207,9 +241,45 @@
         return streak;
     }
 
+    private async Task<int> CalculateLongestStreakAsync(int userId)
+    {
+        var today = DateTime.Today;
+        var start = today.AddDays(-365); // Look back up to a year
+
+        var dates = await DB.JournalEntries
+            .Where(e => e.UserId == userId && e.EntryDate >= start && e.EntryDate <= today)
+            .Select(e => e.EntryDate)
+            .Distinct()
+            .OrderBy(d => d)
+            .ToListAsync();
+
+        if (dates.Count == 0)
+            return 0;
+
+        var longestStreak = 0;
+        var currentStreak = 0;
+        var previousDate = (DateTime?)null;
+
+        foreach (var date in dates)
+        {
+            if (previousDate.HasValue && date == previousDate.Value.AddDays(1))
+            {
+                currentStreak++;
+            }
+            else
+            {
+                currentStreak = 1;
+            }
+
+            longestStreak = Math.Max(longestStreak, currentStreak);
+            previousDate = date;
+        }
+
+        return longestStreak;
+    }
+
     private string GetSnippet(string content)
     {
-        // Makes a short preview line from content
         if (string.IsNullOrWhiteSpace(content))
             return "";
 
@@ -219,7 +289,6 @@
 
     private string MoodClass(string mood)
     {
-        // Applies a small style class based on mood type
         return mood switch
         {
             "Positive" => "positive",

@@ -426,16 +426,3 @@ main,
     border-radius: 10px;
     background: rgba(255,255,255,0.18);
 }
-
-/* ===== Analytics responsiveness (safe add-on) ===== */
-@media (max-width: 1100px) {
-    .settings-card[style*="repeat(4"] {
-        grid-template-columns: 1fr 1fr !important;
-    }
-}
-
-@media (max-width: 700px) {
-    .settings-card[style*="repeat(4"] {
-        grid-template-columns: 1fr !important;
-    }
-}

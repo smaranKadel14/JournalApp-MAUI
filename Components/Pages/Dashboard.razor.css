@@ -1,117 +1,262 @@
-﻿/* Main page wrapper */
-.dash-page {
-    padding: 32px;
-    background: var(--bg-page, #F2F5F9);
-    min-height: 100%;
+﻿/* =========================================
+   Dashboard Layout (More airy + cleaner type)
+========================================= */
+
+.dashboard-wrapper {
+    padding: 28px;
+    max-width: 1150px;
+    margin: 0 auto;
+    color: var(--text);
+    line-height: 1.45;
 }
 
-/* Top header row */
-.dash-top {
+/* Header */
+.dash-header {
     display: flex;
+    align-items: flex-end;
     justify-content: space-between;
-    align-items: flex-start;
     gap: 18px;
-    margin-bottom: 26px;
+    margin-bottom: 22px;
 }
 
-.dash-title {
+.dash-heading {
+    min-width: 0;
+}
+
+.dash-h1 {
     margin: 0;
-    font-size: 44px;
-    font-weight: 600;
-    color: #111;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+    color: var(--text);
 }
 
 .dash-subtitle {
-    margin-top: 6px;
-    color: #777;
-    font-size: 0.95rem;
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
 }
 
-/* Right side: date + button */
-.dash-top-right {
+/* Actions */
+.dash-actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     flex-wrap: wrap;
     justify-content: flex-end;
 }
 
-.date-label {
-    color: #333;
-    font-size: 0.95rem;
+.date-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 13px;
 }
 
-/* Primary button (matches your app's style) */
-.add-btn,
-.primary-btn {
-    background: var(--primary, #E06477);
-    color: white;
-    border: none;
+.chip-ico {
+    opacity: 0.9;
+    font-size: 16px;
+}
+
+/* Primary button in your pink brand */
+.btn-accent {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(180deg, rgba(225,107,122,0.95), rgba(200,70,90,0.95));
+    color: #fff;
+    border: 1px solid rgba(225,107,122,0.55);
     padding: 12px 18px;
     border-radius: 999px;
-    font-weight: 700;
+    font-weight: 900;
     cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
+    box-shadow: 0 12px 26px rgba(225,107,122,0.18);
+    transition: transform .08s ease, filter .08s ease;
 }
 
-    .add-btn:hover,
-    .primary-btn:hover {
+    .btn-accent:hover {
         transform: translateY(-1px);
-        opacity: 0.95;
+        filter: brightness(1.03);
     }
 
-/* Stats cards */
-.stats-grid {
+    .btn-accent:active {
+        transform: translateY(0);
+        filter: brightness(0.98);
+    }
+
+/* =========================================
+   Analytics Summary Cards (4 cards)
+========================================= */
+
+.summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
-    margin-bottom: 28px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin: 18px 0 22px;
 }
 
+@media (max-width: 900px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px 18px;
+    box-shadow: 0 10px 24px var(--shadow);
+}
+
+.summary-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.summary-icon {
+    font-size: 30px;
+    line-height: 1;
+    opacity: 0.95;
+}
+
+.summary-meta {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.summary-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--muted);
+    letter-spacing: 0.2px;
+}
+
+.summary-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.summary-unit {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--muted);
+}
+
+/* =========================================
+   Stats Grid (Legacy - kept for compatibility)
+========================================= */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 18px 0 22px;
+}
+
+@media (max-width: 900px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-wrapper {
+        padding: 20px;
+    }
+}
+
+/* Stat Cards */
 .stat-card {
-    background: var(--bg-card, #fff);
-    border: 1px solid rgba(0,0,0,0.05);
-    border-radius: 18px;
-    padding: 18px 20px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px 18px;
+    box-shadow: 0 10px 24px var(--shadow);
+}
+
+.stat-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* ✅ Bigger icons, NO background */
+.stat-icon {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+    display: block;
+    font-size: 30px; /* make icon bigger */
+    line-height: 1;
+    opacity: 0.95;
+}
+
+.stat-meta {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
 }
 
 .stat-label {
-    color: #888;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--muted);
+    letter-spacing: 0.2px;
 }
 
 .stat-value {
-    font-size: 30px;
-    font-weight: 700;
-    color: #111;
-    line-height: 1.1;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 
-.stat-suffix {
-    margin-top: 2px;
-    color: #666;
-    font-size: 0.9rem;
+.stat-unit {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--muted);
 }
 
-/* Recent section */
-.recent {
-    margin-top: 10px;
-}
+/* =========================================
+   Recent Entries (More breathing room)
+========================================= */
 
 .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
+    margin-top: 18px;
+    margin-bottom: 12px;
 }
 
 .section-title {
     margin: 0;
-    font-size: 34px;
-    font-weight: 600;
-    color: #111;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text);
+}
+
+.loading-text {
+    color: var(--muted);
 }
 
 /* Entry list */
@@ -125,39 +270,46 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    background: var(--bg-card, #fff);
-    border: 1px solid rgba(0,0,0,0.05);
-    border-radius: 16px;
-    padding: 16px 18px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.03);
+    gap: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px 16px;
+    box-shadow: 0 10px 24px var(--shadow);
+    cursor: pointer;
+    transition: transform .08s ease, border-color .08s ease;
 }
 
+    .entry-item:hover {
+        transform: translateY(-1px);
+        border-color: rgba(225, 107, 122, 0.35);
+    }
+
 .entry-left {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0; /* allows text truncation nicely */
+    min-width: 0;
 }
 
 .entry-date {
-    color: #666;
-    font-size: 0.95rem;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--muted);
 }
 
 .entry-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #111;
+    margin-top: 6px;
+    font-weight: 900;
+    color: var(--text);
+    font-size: 15px;
 }
 
-.entry-preview {
-    color: #777;
-    font-size: 0.92rem;
+.entry-snippet {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 780px;
+    max-width: 760px;
 }
 
 .entry-right {
@@ -166,87 +318,13 @@
 
 /* Mood pill */
 .mood-pill {
-    padding: 6px 12px;
+    font-weight: 900;
+    padding: 9px 14px;
     border-radius: 999px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    border: 1px solid rgba(0,0,0,0.06);
-}
-
-/* Mood colors (simple + clean) */
-.mood-positive {
-    color: #1f9d57;
-    background: rgba(31, 157, 87, 0.08);
-}
-
-.mood-neutral {
-    color: #666;
-    background: rgba(0, 0, 0, 0.04);
-}
-
-.mood-negative {
-    color: #e74c3c;
-    background: rgba(231, 76, 60, 0.08);
-}
-
-/* Callouts + empty states */
-.callout,
-.empty {
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.06);
-    border-radius: 16px;
-    padding: 18px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.03);
-    max-width: 520px;
-}
-
-.callout-title,
-.empty-title {
-    font-weight: 800;
-    color: #111;
-    margin-bottom: 6px;
-}
-
-.callout-text,
-.empty-text {
-    color: #666;
-    margin-bottom: 14px;
-}
-
-/* Loading text */
-.loading {
-    color: #666;
-    margin-top: 20px;
-}
-
-.dash-title .subtitle {
-    margin-top: 6px;
-    color: #777;
-}
-
-.dash-actions {
-    display: flex;
-    gap: 18px;
-    align-items: center;
-}
-
-.entry-title {
-    font-weight: 700;
-    margin-top: 6px;
-}
-
-.entry-snippet {
-    color: #777;
-    margin-top: 6px;
-    font-size: 0.9rem;
-}
-
-.mood-pill {
-    font-weight: 700;
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: 1px solid #eee;
-    background: #fff;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 12px;
 }
 
     .mood-pill.positive {
@@ -262,26 +340,27 @@
     }
 
     .mood-pill.neutral {
-        color: #555;
+        color: var(--muted);
         background: rgba(0, 0, 0, 0.04);
         border-color: rgba(0, 0, 0, 0.08);
     }
 
-/* Simple empty state */
+/* Empty state */
 .empty-state {
     padding: 18px;
-    background: #fff;
-    border: 1px solid #f1f1f1;
-    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 10px 24px var(--shadow);
 }
 
 .ghost-btn {
     margin-top: 10px;
     background: transparent;
-    border: 1px solid #e66b7a;
-    color: #e66b7a;
+    border: 1px solid var(--accent);
+    color: var(--accent);
     padding: 10px 16px;
     border-radius: 999px;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 900;
 }
