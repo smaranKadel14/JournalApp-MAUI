@@ -1,19 +1,38 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject JournalApp.Services.ThemeService Theme
 
-<div class="page">
-    <div class="sidebar">
-        @* This calls the NavMenu.razor file we just edited above *@
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            @* You can put a "Logout" button or User name here later *@
-            <a href="login">Switch User</a>
+<div class="@($"{Theme.CssClass} app-root")">
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+        <main>
+            <div class="top-row px-4">
+                <a href="login">Switch User</a>
+            </div>
+
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Theme.OnChange += OnThemeChanged;
+    }
+
+    private void OnThemeChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Theme.OnChange -= OnThemeChanged;
+    }
+}

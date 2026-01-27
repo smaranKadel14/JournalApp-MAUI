@@ -22,22 +22,33 @@ public static class MauiProgram
 
         builder.Services.AddMauiBlazorWebView();
 
+        // Theme must be Singleton
+        builder.Services.AddSingleton<ThemeService>();
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
 
+        // SQLite file in AppDataDirectory
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "journal.db");
         Debug.WriteLine($"DB PATH = {dbPath}");
 
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite($"Data Source={dbPath}"));
 
-        // Prefer Scoped if it uses DbContext
-        builder.Services.AddScoped<UserService>();
+        // User session should be Singleton (shared across whole app)
+        builder.Services.AddSingleton<UserService>();
+
+        // Uses DbContext -> Scoped
         builder.Services.AddScoped<JournalEntryService>();
 
         var app = builder.Build();
 
+        // Load saved theme at startup
+        var theme = app.Services.GetRequiredService<ThemeService>();
+        theme.Load();
+
+        // Apply migrations safely
         try
         {
             using var scope = app.Services.CreateScope();

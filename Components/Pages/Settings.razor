@@ -1,0 +1,102 @@
+﻿@page "/settings"
+
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Nav
+@inject JournalApp.Services.ThemeService Theme
+
+<div class="settings-wrap">
+    <div class="settings-top">
+        <button type="button" class="back-link" @onclick="GoBack">← Back</button>
+
+        <div class="settings-title">
+            <div class="settings-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 1h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.64.22l2.39-.96c.5.4 1.05.71 1.63.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.24.1.51.01.64-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z" />
+                </svg>
+            </div>
+            <div>
+                <div class="settings-h">Settings</div>
+                <div class="settings-sub">Personalize your JournalApp</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-card">
+        <div class="section-head">
+            <div>
+                <div class="section-title">Appearance</div>
+                <div class="section-desc">Choose light or dark mode.</div>
+            </div>
+            <div class="badge">@Cap(SelectedTheme)</div>
+        </div>
+
+        <InputRadioGroup class="theme-grid" @bind-Value="SelectedTheme">
+            <label class="theme-card">
+                <InputRadio class="theme-radio" Value="@("light")" />
+                <div class="theme-inner">
+                    <div class="preview light">
+                        <div class="p-top"></div>
+                        <div class="p-row"></div>
+                        <div class="p-row"></div>
+                    </div>
+                    <div class="theme-text">
+                        <div class="theme-name">Light</div>
+                        <div class="theme-desc">Bright &amp; clean</div>
+                    </div>
+                </div>
+            </label>
+
+            <label class="theme-card">
+                <InputRadio class="theme-radio" Value="@("dark")" />
+                <div class="theme-inner">
+                    <div class="preview dark">
+                        <div class="p-top"></div>
+                        <div class="p-row"></div>
+                        <div class="p-row"></div>
+                    </div>
+                    <div class="theme-text">
+                        <div class="theme-name">Dark</div>
+                        <div class="theme-desc">Soft on eyes</div>
+                    </div>
+                </div>
+            </label>
+        </InputRadioGroup>
+
+        <div class="tip">
+            Tip: Your choice is saved and stays after restarting the app.
+        </div>
+    </div>
+
+    @* Debug box (remove later) *@
+    <div style="margin-top:12px; font-size:12px; color:var(--muted);">
+        ThemeService: <b>@Theme.CurrentTheme</b> | CssClass: <b>@Theme.CssClass</b>
+    </div>
+</div>
+
+@code {
+    private string _selectedTheme = "light";
+
+    private string SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            if (_selectedTheme == value) return;
+            _selectedTheme = value;
+
+            // Apply immediately (no onchange handler needed)
+            Theme.SetTheme(value);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // sync UI with saved theme
+        SelectedTheme = Theme.CurrentTheme;
+    }
+
+    private void GoBack() => Nav.NavigateTo("/dashboard");
+
+    private static string Cap(string s) =>
+        string.IsNullOrWhiteSpace(s) ? "" : char.ToUpper(s[0]) + s[1..];
+}

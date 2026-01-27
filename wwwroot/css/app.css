@@ -1,8 +1,12 @@
-﻿/*#if (SampleContent)*/
+﻿/* =========================================
+   Base / Template Styles
+========================================= */
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* Keep your link color, but we will also theme it later */
 a, .btn-link {
     color: #006bb7;
 }
@@ -17,11 +21,6 @@ a, .btn-link {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-.content {
-    padding-top: 1.1rem;
-}
-
-/*#endif*/
 h1:focus {
     outline: none;
 }
@@ -38,6 +37,7 @@ h1:focus {
     color: #e50000;
 }
 
+/* Blazor error UI */
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
@@ -64,7 +64,7 @@ h1:focus {
 }
 
     .blazor-error-boundary::after {
-        content: "An error has occurred."
+        content: "An error has occurred.";
     }
 
 .status-bar-safe-area {
@@ -85,4 +85,249 @@ h1:focus {
     .flex-column, .navbar-brand {
         padding-left: env(safe-area-inset-left);
     }
+}
+
+/* =========================================
+   Navigation icon helper
+========================================= */
+.nav-ico {
+    display: inline-flex;
+    margin-right: 10px;
+    vertical-align: middle;
+    opacity: 0.9;
+}
+
+/* =========================================
+   Theme Variables + Global Application
+========================================= */
+
+/* Brand accent */
+:root {
+    --accent: #e16b7a;
+    --accent-soft: #ffe7ea;
+}
+
+/* Light theme */
+.theme-light {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f5f6f7;
+    --text: #1b1b1b;
+    --muted: rgba(0,0,0,0.65);
+    --border: rgba(0,0,0,0.10);
+    --shadow: rgba(0,0,0,0.06);
+}
+
+/* Dark theme */
+.theme-dark {
+    --bg: #0f1115;
+    --surface: #151821;
+    --surface-2: #1c2030;
+    --text: #f3f5f7;
+    --muted: rgba(243,245,247,0.70);
+    --border: rgba(255,255,255,0.10);
+    --shadow: rgba(0,0,0,0.35);
+}
+
+/* Root wrapper from MainLayout */
+.app-root {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* IMPORTANT: override default template white backgrounds */
+.page,
+main,
+.content,
+.top-row {
+    background: transparent !important;
+    color: var(--text);
+}
+
+/* Optional: make links match pink */
+.app-root a,
+.app-root .btn-link {
+    color: var(--accent);
+}
+
+/* Common containers should follow theme */
+.entry-container,
+.auth-card,
+.cal-topbar,
+.cal-cell,
+.settings-card {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+/* =========================================
+   Settings Page Styles
+========================================= */
+
+.settings-wrap {
+    padding: 18px;
+    max-width: 900px;
+}
+
+.settings-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.settings-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-ico {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(225, 107, 122, 0.25);
+}
+
+.settings-h {
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.settings-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.settings-card {
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 10px 24px var(--shadow);
+}
+
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.section-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.badge {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid rgba(225, 107, 122, 0.35);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-weight: 800;
+    font-size: 12px;
+}
+
+.theme-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+/* hide the InputRadio */
+.theme-radio {
+    display: none;
+}
+
+.theme-inner {
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform .08s ease, border-color .08s ease, background .08s ease;
+}
+
+    .theme-inner:hover {
+        transform: translateY(-1px);
+    }
+
+/* When selected, highlight in pink */
+.theme-card input:checked + .theme-inner,
+.theme-card .theme-radio:checked + .theme-inner {
+    border-color: rgba(225, 107, 122, 0.65);
+    background: var(--accent-soft);
+}
+
+.preview {
+    width: 66px;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.08);
+    overflow: hidden;
+    position: relative;
+}
+
+    .preview.light {
+        background: #ffffff;
+    }
+
+    .preview.dark {
+        background: #141824;
+        border-color: rgba(255,255,255,0.10);
+    }
+
+    .preview .p-top {
+        height: 12px;
+        background: var(--accent);
+        opacity: 0.9;
+    }
+
+    .preview .p-row {
+        height: 8px;
+        margin: 7px 10px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.12);
+    }
+
+    .preview.dark .p-row {
+        background: rgba(255,255,255,0.14);
+    }
+
+.theme-text .theme-name {
+    font-weight: 900;
+}
+
+.theme-text .theme-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.tip {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px dashed rgba(225, 107, 122, 0.35);
+    background: rgba(225, 107, 122, 0.08);
 }
