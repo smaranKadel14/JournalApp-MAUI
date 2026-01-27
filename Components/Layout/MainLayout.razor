@@ -1,8 +1,7 @@
 ﻿@inherits LayoutComponentBase
-@implements IDisposable
 @inject JournalApp.Services.ThemeService Theme
 
-<div class="@($"{Theme.CssClass} app-root")">
+<div class="app-root @Theme.CssClass">
     <div class="page">
         <div class="sidebar">
             <NavMenu />

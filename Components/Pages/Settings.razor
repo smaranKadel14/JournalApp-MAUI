@@ -36,7 +36,11 @@
             <div class="badge">@Cap(SelectedTheme)</div>
         </div>
 
-        <InputRadioGroup class="theme-grid" @bind-Value="SelectedTheme" @onchange="OnThemeChanged">
+        <InputRadioGroup TValue="string"
+                         class="theme-grid"
+                         Value="SelectedTheme"
+                         ValueChanged="OnThemeChanged"
+                         ValueExpression="(() => SelectedTheme)">
 
             <label class="theme-card">
                 <InputRadio class="theme-radio" Value="@("light")" />
@@ -71,6 +75,11 @@
         </InputRadioGroup>
 
         <div class="tip">Tip: Your choice is saved and stays after restarting the app.</div>
+
+        @* Remove later if you want *@
+        <div style="margin-top:10px; font-weight:700;">
+            @Theme.CssClass
+        </div>
     </div>
 
     <!-- EXPORT PDF -->
@@ -107,7 +116,7 @@
 
         @if (!string.IsNullOrWhiteSpace(ExportMessage))
         {
-            <div class="info-box" style="margin-top: 12px;">
+            <div class="info-box" style="margin-top: 12px; white-space: pre-line;">
                 @ExportMessage
             </div>
         }
@@ -134,13 +143,26 @@
     protected override void OnInitialized()
     {
         SelectedTheme = Theme.CurrentTheme;
+        Theme.OnChange += HandleThemeChanged;
+    }
+
+    private void HandleThemeChanged()
+    {
+        SelectedTheme = Theme.CurrentTheme;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Theme.OnChange -= HandleThemeChanged;
     }
 
     private void GoBack() => Nav.NavigateTo("/dashboard");
 
-    private void OnThemeChanged(ChangeEventArgs _)
+    private void OnThemeChanged(string value)
     {
-        Theme.SetTheme(SelectedTheme);
+        SelectedTheme = value;
+        Theme.SetTheme(value);
     }
 
     private async Task ExportPdf()
@@ -166,11 +188,11 @@
         try
         {
             var userId = UserSession.CurrentUserId.Value;
+
             var path = await PdfExport.ExportEntriesAsync(userId, FromDate, ToDate);
 
             ExportMessage = $"Exported PDF:\n{path}";
 
-            // Windows: open folder automatically
             var folder = Path.GetDirectoryName(path);
             if (!string.IsNullOrWhiteSpace(folder))
                 System.Diagnostics.Process.Start("explorer.exe", folder);
