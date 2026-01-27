@@ -265,7 +265,7 @@
     text-align: center;
     padding: 40px 30px;
     border-radius: 20px;
-    background: var(--surface-2);
+    background: var(--accent-soft);
     transition: all 0.3s ease;
     border: 1px solid var(--border);
 }
