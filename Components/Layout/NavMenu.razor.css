@@ -1,3 +1,7 @@
+/* =========================================
+   Theme-Aware Modern Navbar Design
+========================================= */
+
 .navbar-toggler {
     appearance: none;
     cursor: pointer;
@@ -7,21 +11,27 @@
     position: absolute;
     top: 0.5rem;
     right: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--accent);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='var%28--accent%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem var(--accent-soft);
+    border-radius: 12px;
 }
 
     .navbar-toggler:checked {
-        background-color: rgba(255, 255, 255, 0.5);
+        background-color: var(--accent-soft);
+        border-color: var(--accent);
     }
 
 .top-row {
     height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+    background: var(--accent);
+    box-shadow: 0 4px 20px var(--shadow);
+    border-bottom: 1px solid var(--border);
 }
 
 .navbar-brand {
     font-size: 1.1rem;
+    color: white !important;
+    font-weight: 700;
 }
 
 .bi {
@@ -60,26 +70,51 @@
     }
 
     .nav-item ::deep a {
-        color: #d7d7d7;
-        border-radius: 4px;
+        color: var(--muted);
+        border-radius: 12px;
         height: 3rem;
         display: flex;
         align-items: center;
         line-height: 3rem;
+        transition: all 0.2s ease;
+        margin: 2px 0;
+        font-weight: 500;
+        gap: 12px;
     }
 
+    .nav-item ::deep .nav-icon {
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+        stroke: var(--muted);
+    }
+
+        .nav-item ::deep a.active .nav-icon {
+            opacity: 1;
+            stroke: white;
+        }
+
+        .nav-item ::deep a:hover .nav-icon {
+            opacity: 1;
+            stroke: var(--accent);
+        }
+
         .nav-item ::deep a.active {
-            background-color: rgba(255,255,255,0.37);
+            background: var(--accent);
             color: white;
+            box-shadow: 0 4px 15px var(--shadow);
+            font-weight: 600;
         }
 
         .nav-item ::deep a:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: white;
+            background: var(--accent-soft);
+            color: var(--accent);
+            transform: translateX(4px);
         }
 
 .nav-scrollable {
     display: none;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
 }
 
 .navbar-toggler:checked ~ .nav-scrollable {
@@ -97,5 +132,7 @@
         /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
     }
 }
