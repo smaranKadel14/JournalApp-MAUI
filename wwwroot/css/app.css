@@ -136,7 +136,9 @@ h1:focus {
     color: var(--text);
 }
 
-/* IMPORTANT: override default template white backgrounds */
+/* IMPORTANT:
+   The default Blazor template sets white backgrounds on some layout areas.
+   We make them follow the theme by forcing them to be transparent. */
 .page,
 main,
 .content,
@@ -145,7 +147,7 @@ main,
     color: var(--text);
 }
 
-/* Optional: make links match pink */
+/* Optional: make links match pink inside the app */
 .app-root a,
 .app-root .btn-link {
     color: var(--accent);
@@ -333,30 +335,8 @@ main,
 }
 
 /* ===== Export PDF section ===== */
-.export-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 12px;
-    margin-top: 12px;
-    align-items: end;
-}
+/* NOTE: you had export-grid twice; we keep the upgraded version below (same behavior, cleaner). */
 
-.export-actions .save-btn {
-    min-width: 140px;
-}
-
-/* Make responsive (if window smaller) */
-@media (max-width: 800px) {
-    .export-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .export-actions .save-btn {
-        width: 100%;
-    }
-}
-
-/* ===== Export UI upgrades ===== */
 .export-grid {
     display: grid;
     grid-template-columns: 1fr 1fr auto;
@@ -365,6 +345,19 @@ main,
     align-items: end;
 }
 
+/* Make responsive (if window smaller) */
+@media (max-width: 800px) {
+    .export-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-pink {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ===== Export UI upgrades ===== */
 .export-field {
     display: grid;
     gap: 6px;
@@ -432,16 +425,4 @@ main,
     place-items: center;
     border-radius: 10px;
     background: rgba(255,255,255,0.18);
-}
-
-/* Responsive */
-@media (max-width: 800px) {
-    .export-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .btn-pink {
-        width: 100%;
-        justify-content: center;
-    }
 }

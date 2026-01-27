@@ -1,29 +1,51 @@
 ﻿using Microsoft.Maui.Storage;
 
-namespace JournalApp.Services;
-
-public class ThemeService
+namespace JournalApp.Services
 {
-    private const string Key = "app_theme"; // light | dark
-
-    public string CurrentTheme { get; private set; } = "light";
-    public event Action? OnChange;
-
-    public void Load()
+    // This service stores the selected theme and notifies the UI when theme changes.
+    // We use it in MainLayout to apply CSS class: theme-light / theme-dark.
+    public class ThemeService
     {
-        CurrentTheme = Preferences.Default.Get(Key, "light");
-        OnChange?.Invoke();
+        private const string PrefKey = "app_theme"; // saved in app preferences
+
+        // Stored theme name: "light" or "dark"
+        public string CurrentTheme { get; private set; } = "light";
+
+        // This is what you put into class="" in MainLayout
+        public string CssClass => CurrentTheme == "dark" ? "theme-dark" : "theme-light";
+
+        // Blazor components can subscribe to this to refresh UI
+        public event Action? OnChange;
+
+        // Load saved theme when app starts
+        public void Load()
+        {
+            var saved = Preferences.Get(PrefKey, "light");
+            SetTheme(saved, saveToPrefs: false);
+        }
+
+        // Set theme from UI
+        public void SetTheme(string? theme, bool saveToPrefs = true)
+        {
+            // Normalize input (in case we receive "theme-dark" etc.)
+            theme = (theme ?? "").Trim().ToLowerInvariant();
+            if (theme == "theme-dark") theme = "dark";
+            if (theme == "theme-light") theme = "light";
+
+            if (theme != "dark") theme = "light"; // default safety
+
+            // If no real change, do nothing
+            if (CurrentTheme == theme)
+                return;
+
+            CurrentTheme = theme;
+
+            // Save for next app startup
+            if (saveToPrefs)
+                Preferences.Set(PrefKey, CurrentTheme);
+
+            // Notify UI (MainLayout, Settings, etc.)
+            OnChange?.Invoke();
+        }
     }
-
-    public void SetTheme(string theme)
-    {
-        if (theme != "light" && theme != "dark") theme = "light";
-        if (CurrentTheme == theme) return;
-
-        CurrentTheme = theme;
-        Preferences.Default.Set(Key, theme);
-        OnChange?.Invoke();
-    }
-
-    public string CssClass => CurrentTheme == "dark" ? "theme-dark" : "theme-light";
 }
