@@ -1,6 +1,7 @@
 ﻿/* Container */
 .cal-wrap {
     padding: 18px;
+    color: var(--text);
 }
 
 /* Top bar */
@@ -9,10 +10,11 @@
     justify-content: space-between;
     align-items: center;
     gap: 14px;
-    background: #ffffff;
+    background: var(--surface);
     border-radius: 18px;
     padding: 14px 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    box-shadow: 0 10px 30px var(--shadow);
+    border: 1px solid var(--border);
     margin-bottom: 14px;
 }
 
@@ -26,44 +28,46 @@
     width: 40px;
     height: 40px;
     border-radius: 14px;
-    background: #ffe7ea;
+    background: var(--accent-soft);
     display: grid;
     place-items: center;
     font-size: 18px;
-    border: 1px solid rgba(225, 107, 122, 0.25);
+    border: 1px solid rgba(224, 100, 119, 0.25);
+    color: var(--accent);
 }
 
 .cal-heading {
     font-size: 18px;
     font-weight: 800;
+    color: var(--text);
 }
 
 .cal-sub {
     font-size: 12px;
-    opacity: 0.65;
+    color: var(--muted);
     margin-top: 2px;
 }
 
 .cal-actions {
     display: flex;
     gap: 10px;
+    color: var(--text);
 }
 
 /* Buttons */
 .cal-btn {
+    background: var(--accent);
+    color: white;
     border: none;
-    border-radius: 999px;
     padding: 10px 14px;
     font-weight: 700;
     cursor: pointer;
-    background: #e16b7a; /* main pink */
-    color: white;
 }
 
     .cal-btn.ghost {
-        background: #fff0f2;
-        color: #c94b5b;
-        border: 1px solid rgba(225, 107, 122, 0.35);
+        background: var(--accent-soft);
+        color: var(--accent);
+        border: 1px solid rgba(224, 100, 119, 0.35);
     }
 
 /* Month toolbar */
@@ -78,17 +82,20 @@
     font-size: 22px;
     font-weight: 900;
     letter-spacing: 0.2px;
+    color: var(--text);
 }
 
 .cal-nav {
     width: 42px;
     height: 42px;
     border-radius: 14px;
-    border: 1px solid rgba(0,0,0,0.10);
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--surface);
     cursor: pointer;
     font-size: 20px;
     font-weight: 800;
+    color: var(--text);
+    transition: all 0.2s ease;
 }
 
 /* Grid */
@@ -96,29 +103,31 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 12px;
+    color: var(--text);
 }
 
 .cal-dow {
     text-align: center;
     font-weight: 800;
     font-size: 12px;
-    opacity: 0.65;
+    color: var(--muted);
 }
 
 /* Day cell */
 .cal-cell {
-    background: white;
+    background: var(--surface);
     border-radius: 18px;
     min-height: 130px;
     padding: 12px;
-    border: 1px solid rgba(0,0,0,0.07);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 18px var(--shadow);
     transition: transform .08s ease, box-shadow .08s ease;
+    color: var(--text);
 }
 
     .cal-cell:hover {
         transform: translateY(-1px);
-        box-shadow: 0 12px 22px rgba(0,0,0,0.06);
+        box-shadow: 0 12px 22px var(--shadow);
     }
 
     .cal-cell.muted {
@@ -126,8 +135,8 @@
     }
 
     .cal-cell.today {
-        border: 2px solid rgba(225, 107, 122, 0.55);
-        background: linear-gradient(180deg, #fff 0%, #fff7f8 100%);
+        border: 2px solid rgba(224, 100, 119, 0.55);
+        background: linear-gradient(180deg, var(--surface) 0%, var(--accent-soft) 100%);
     }
 
 /* Cell header */
@@ -145,7 +154,8 @@
     place-items: center;
     font-weight: 900;
     font-size: 13px;
-    background: #f6f6f6;
+    background: var(--surface-2);
+    color: var(--text);
 }
 
 /* Plus button appears on hover */
@@ -153,9 +163,9 @@
     width: 30px;
     height: 30px;
     border-radius: 12px;
-    border: 1px solid rgba(225, 107, 122, 0.40);
-    background: #fff0f2;
-    color: #c94b5b;
+    border: 1px solid rgba(224, 100, 119, 0.40);
+    background: var(--accent-soft);
+    color: var(--accent);
     font-weight: 900;
     font-size: 18px;
     cursor: pointer;
@@ -175,6 +185,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    color: var(--text);
 }
 
 .cal-chip {
@@ -184,8 +195,9 @@
     border-radius: 14px;
     padding: 10px 10px;
     cursor: pointer;
-    background: #ffe7ea;
-    border: 1px solid rgba(225, 107, 122, 0.30);
+    background: var(--accent-soft);
+    border: 1px solid rgba(224, 100, 119, 0.30);
+    color: var(--text);
 }
 
     .cal-chip:hover {
@@ -195,18 +207,18 @@
 .chip-title {
     font-weight: 900;
     font-size: 13px;
-    color: #4b1f26;
+    color: var(--text);
 }
 
 .chip-sub {
     font-size: 11px;
-    opacity: 0.75;
+    color: var(--muted);
     margin-top: 2px;
 }
 
 .cal-more {
     font-size: 11px;
     font-weight: 700;
-    opacity: 0.65;
+    color: var(--muted);
     padding-left: 4px;
 }

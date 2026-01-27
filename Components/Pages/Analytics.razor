@@ -1,23 +1,24 @@
 ﻿@using JournalApp.Services
 @using Microsoft.AspNetCore.Components.Forms
-@using System.Linq
 
 @inject AnalyticsService AnalyticsService
 @inject JournalApp.Services.UserService UserSession
 
 @*
    Analytics Component (Date-range filterable)
-   - Mood Distribution (Pie + progress bars)
+   - Mood Distribution (Pie + bars)
+   - Most Frequent Mood
+   - Daily Streak + Longest Streak
    - Missed Days list
-   - Most Used Tags
-   - Tag Breakdown
+   - Most Used Tags (bars)
+   - Tag Breakdown (% of entries per tag-category)
    - Word Count Trend (avg words per entry per day)
 *@
 
 <section class="analytics-shell">
     <div class="analytics-header">
         <div class="analytics-title">
-            <h2 class="analytics-h">Analytics &amp; Insights</h2>
+            <h2 class="analytics-h">Analytics & Insights</h2>
             <p class="analytics-sub">
                 Filter by date range to see your mood, streaks, tags, missed days, and writing trends.
             </p>
@@ -92,7 +93,7 @@
 
                                 <!-- Positive -->
                                 <circle cx="21" cy="21" r="15.9155" fill="transparent"
-                                        stroke="var(--mood-pos)" stroke-width="8"
+                                        stroke="var(--accent)" stroke-width="8"
                                         stroke-dasharray="@($"{p} {100 - p}")"
                                         stroke-dashoffset="@offset" />
 
@@ -101,7 +102,7 @@
                                     offset -= p;
                                 }
                                 <circle cx="21" cy="21" r="15.9155" fill="transparent"
-                                        stroke="var(--mood-neu)" stroke-width="8"
+                                        stroke="rgba(225,107,122,0.55)" stroke-width="8"
                                         stroke-dasharray="@($"{n} {100 - n}")"
                                         stroke-dashoffset="@offset" />
 
@@ -110,37 +111,18 @@
                                     offset -= n;
                                 }
                                 <circle cx="21" cy="21" r="15.9155" fill="transparent"
-                                        stroke="var(--mood-neg)" stroke-width="8"
+                                        stroke="rgba(225,107,122,0.28)" stroke-width="8"
                                         stroke-dasharray="@($"{g} {100 - g}")"
                                         stroke-dashoffset="@offset" />
                             </svg>
                         }
                     </div>
 
-                    <!-- Progress bars beside pie -->
+                    <!-- Bars -->
                     <div class="mood-bars">
-                        @MoodRow("Positive", "var(--mood-pos)")
-                        @MoodRow("Neutral", "var(--mood-neu)")
-                        @MoodRow("Negative", "var(--mood-neg)")
-                    </div>
-
-                    <!-- Color Legend -->
-                    <div class="mood-legend">
-                        <div class="legend-title">Color Index</div>
-                        <div class="legend-items">
-                            <div class="legend-item">
-                                <span class="legend-dot" style="background: var(--mood-pos);"></span>
-                                <span class="legend-label">Positive</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-dot" style="background: var(--mood-neu);"></span>
-                                <span class="legend-label">Neutral</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-dot" style="background: var(--mood-neg);"></span>
-                                <span class="legend-label">Negative</span>
-                            </div>
-                        </div>
+                        @MoodRow("Positive", "var(--accent)")
+                        @MoodRow("Neutral", "rgba(225,107,122,0.55)")
+                        @MoodRow("Negative", "rgba(225,107,122,0.28)")
                     </div>
                 </div>
             </div>
@@ -347,24 +329,13 @@
         builder.OpenElement(seq++, "div");
         builder.AddAttribute(seq++, "class", "mood-row");
 
-        // top row: dot + label + value
         builder.OpenElement(seq++, "div");
         builder.AddAttribute(seq++, "class", "mood-row-top");
-
-        builder.OpenElement(seq++, "div");
-        builder.AddAttribute(seq++, "class", "mood-left");
-
-        builder.OpenElement(seq++, "span");
-        builder.AddAttribute(seq++, "class", "mood-dot");
-        builder.AddAttribute(seq++, "style", $"background:{color};");
-        builder.CloseElement();
 
         builder.OpenElement(seq++, "span");
         builder.AddAttribute(seq++, "class", "mood-name");
         builder.AddContent(seq++, mood);
         builder.CloseElement();
-
-        builder.CloseElement(); // mood-left
 
         builder.OpenElement(seq++, "span");
         builder.AddAttribute(seq++, "class", "mood-val");
@@ -373,7 +344,6 @@
 
         builder.CloseElement(); // mood-row-top
 
-        // progress bar
         builder.OpenElement(seq++, "div");
         builder.AddAttribute(seq++, "class", "bar-track");
 
