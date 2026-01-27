@@ -1,11 +1,12 @@
 ﻿@page "/entries"
 
 @* 
-    ENTRIES LIST PAGE (Option A Feature)
-    - I created this page to show ALL saved journal entries of the currently logged-in user.
-    - I added search + mood filter so I can quickly find older entries.
+    ENTRIES LIST PAGE WITH PAGINATION
+    - Shows paginated journal entries for the currently logged-in user
+    - Search + mood filter functionality
+    - Pagination controls for easy navigation
     - Each entry row is clickable and navigates to the edit page: /new-entry/{id}
-    - I also show a small snippet preview (HTML stripped) so the list looks clean.
+    - Shows entry snippet preview with HTML stripped
 *@
 
 @using Microsoft.EntityFrameworkCore
@@ -35,10 +36,6 @@
     <section class="filters">
         <div class="filter-item">
             <label>Search</label>
-            @* 
-                I store the search text in SearchText.
-                I apply the filter when I click Search or press Enter.
-            *@
             <input class="input"
                    placeholder="Search title or content..."
                    @bind="SearchText"
@@ -48,16 +45,33 @@
 
         <div class="filter-item">
             <label>Mood</label>
-            @* 
-                I filter by primary mood group (Mood column in DB).
-                "All" means no mood filter.
-            *@
             <select class="input" @bind="MoodFilter">
                 <option value="All">All</option>
                 <option value="Positive">Positive</option>
                 <option value="Neutral">Neutral</option>
                 <option value="Negative">Negative</option>
             </select>
+        </div>
+
+        <div class="filter-item">
+            <label>Tags</label>
+            <select class="input" @bind="TagFilter">
+                <option value="All">All Tags</option>
+                @foreach (var tag in AvailableTags)
+                {
+                    <option value="@tag">@tag</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-item">
+            <label>From Date</label>
+            <InputDate class="input" @bind-Value="FromDate" />
+        </div>
+
+        <div class="filter-item">
+            <label>To Date</label>
+            <InputDate class="input" @bind-Value="ToDate" />
         </div>
 
         <div class="filter-actions">
@@ -90,7 +104,7 @@
     else
     {
         <div class="list">
-            @foreach (var e in AllEntries)
+            @foreach (var e in PagedEntries)
             {
                 <div class="item" @onclick="@(() => GoEditEntry(e.Id))">
                     <div class="item-left">
@@ -104,6 +118,65 @@
                     </div>
                 </div>
             }
+        </div>
+
+        <!-- Pagination Controls - Always Visible -->
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                <span class="pagination-text">
+                    Showing @((CurrentPage - 1) * PageSize + 1)-@Math.Min(CurrentPage * PageSize, TotalEntries) of @TotalEntries entries
+                </span>
+            </div>
+
+            @if (TotalPages > 1)
+            {
+                <div class="pagination-controls">
+                    <button class="pagination-btn" 
+                            @onclick="GoToFirstPage" 
+                            disabled="@(CurrentPage == 1 || IsLoading)">
+                        « First
+                    </button>
+
+                    <button class="pagination-btn" 
+                            @onclick="GoToPreviousPage" 
+                            disabled="@(CurrentPage == 1 || IsLoading)">
+                        ‹ Previous
+                    </button>
+
+                    @for (int i = GetStartPage(); i <= GetEndPage(); i++)
+                    {
+                        <button class="pagination-btn @(i == CurrentPage ? "active" : "")" 
+                                @onclick="@(() => GoToPage(i))" 
+                                disabled="@IsLoading">
+                            @i
+                        </button>
+                    }
+
+                    <button class="pagination-btn" 
+                            @onclick="GoToNextPage" 
+                            disabled="@(CurrentPage == TotalPages || IsLoading)">
+                        Next ›
+                    </button>
+
+                    <button class="pagination-btn" 
+                            @onclick="GoToLastPage" 
+                            disabled="@(CurrentPage == TotalPages || IsLoading)">
+                        Last »
+                    </button>
+                </div>
+            }
+
+            <!-- Page Size Selector - Always Visible -->
+            <div class="page-size-selector">
+                <label>Items per page:</label>
+                <select class="input page-size-select" @bind="PageSize" @bind:after="OnPageSizeChanged">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+            </div>
         </div>
     }
 </div>
@@ -119,9 +192,20 @@
     // I store query/filter state here
     private string SearchText { get; set; } = "";
     private string MoodFilter { get; set; } = "All";
+    private string TagFilter { get; set; } = "All";
+    private DateTime FromDate { get; set; } = DateTime.Today.AddMonths(-1);
+    private DateTime ToDate { get; set; } = DateTime.Today;
+    private List<string> AvailableTags { get; set; } = new();
+
+    // Pagination state
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 10; // Default page size for production
+    private int TotalEntries { get; set; } = 0;
+    private int TotalPages => (int)Math.Ceiling((double)TotalEntries / PageSize);
 
     // I store the filtered results here
     private List<JournalEntry> AllEntries { get; set; } = new();
+    private List<JournalEntry> PagedEntries { get; set; } = new();
 
     // -----------------------
     // Lifecycle
@@ -136,12 +220,39 @@
             return;
         }
 
+        await LoadAvailableTagsAsync();
         await LoadEntriesAsync();
     }
 
     // -----------------------
     // Data Loading
     // -----------------------
+
+    private async Task LoadAvailableTagsAsync()
+    {
+        try
+        {
+            var userId = UserSession.CurrentUserId!.Value;
+            
+            // Get all unique tags from user's entries
+            var tags = await DB.JournalEntries
+                .AsNoTracking()
+                .Where(e => e.UserId == userId && !string.IsNullOrWhiteSpace(e.TagsCsv))
+                .SelectMany(e => e.TagsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                .Select(tag => tag.Trim())
+                .Where(tag => !string.IsNullOrWhiteSpace(tag))
+                .Distinct()
+                .OrderBy(tag => tag)
+                .ToListAsync();
+
+            AvailableTags = tags;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading tags: {ex.Message}");
+            AvailableTags = new List<string>();
+        }
+    }
 
     private async Task LoadEntriesAsync()
     {
@@ -157,10 +268,19 @@
                 .AsNoTracking()
                 .Where(e => e.UserId == userId);
 
+            // Date range filter
+            q = q.Where(e => e.EntryDate >= FromDate.Date && e.EntryDate <= ToDate.Date);
+
             // Mood filter
             if (!string.Equals(MoodFilter, "All", StringComparison.OrdinalIgnoreCase))
             {
                 q = q.Where(e => e.Mood == MoodFilter);
+            }
+
+            // Tag filter
+            if (!string.Equals(TagFilter, "All", StringComparison.OrdinalIgnoreCase))
+            {
+                q = q.Where(e => e.TagsCsv.Contains(TagFilter));
             }
 
             // Search filter (search in Title + Content)
@@ -174,10 +294,25 @@
                     EF.Functions.Like(e.Content, like));
             }
 
-            // I show newest entries first
+            // Get total count for pagination
+            TotalEntries = await q.CountAsync();
+
+            // Get paged results
             AllEntries = await q
                 .OrderByDescending(e => e.EntryDate)
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
+
+            // Update paged entries
+            PagedEntries = AllEntries;
+
+            // If current page is beyond the last page, reset to page 1
+            if (CurrentPage > 1 && PagedEntries.Count == 0)
+            {
+                CurrentPage = 1;
+                await LoadEntriesAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -195,6 +330,7 @@
 
     private async Task ApplyFiltersAsync()
     {
+        CurrentPage = 1; // Reset to first page when applying filters
         await LoadEntriesAsync();
     }
 
@@ -203,6 +339,10 @@
         // I reset filters back to default and reload the list.
         SearchText = "";
         MoodFilter = "All";
+        TagFilter = "All";
+        FromDate = DateTime.Today.AddMonths(-1);
+        ToDate = DateTime.Today;
+        CurrentPage = 1; // Reset to first page when clearing filters
         await LoadEntriesAsync();
     }
 
@@ -227,6 +367,81 @@
     {
         // I navigate to the edit page (your existing route with id).
         Nav.NavigateTo($"/new-entry/{id}");
+    }
+
+    // -----------------------
+    // Pagination Navigation
+    // -----------------------
+
+    private async Task GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            CurrentPage = page;
+            await LoadEntriesAsync();
+        }
+    }
+
+    private async Task GoToFirstPage()
+    {
+        await GoToPage(1);
+    }
+
+    private async Task GoToPreviousPage()
+    {
+        await GoToPage(CurrentPage - 1);
+    }
+
+    private async Task GoToNextPage()
+    {
+        await GoToPage(CurrentPage + 1);
+    }
+
+    private async Task GoToLastPage()
+    {
+        await GoToPage(TotalPages);
+    }
+
+    private async Task OnPageSizeChanged()
+    {
+        CurrentPage = 1; // Reset to first page when page size changes
+        await LoadEntriesAsync();
+    }
+
+    // Helper methods for pagination display
+    private int GetStartPage()
+    {
+        int maxVisiblePages = 5;
+        int halfVisible = maxVisiblePages / 2;
+        
+        if (TotalPages <= maxVisiblePages)
+            return 1;
+        
+        int start = CurrentPage - halfVisible;
+        if (start < 1)
+            start = 1;
+        
+        int end = start + maxVisiblePages - 1;
+        if (end > TotalPages)
+        {
+            start = TotalPages - maxVisiblePages + 1;
+            if (start < 1)
+                start = 1;
+        }
+        
+        return start;
+    }
+
+    private int GetEndPage()
+    {
+        int maxVisiblePages = 5;
+        int start = GetStartPage();
+        int end = start + maxVisiblePages - 1;
+        
+        if (end > TotalPages)
+            return TotalPages;
+        
+        return end;
     }
 
     // -----------------------
