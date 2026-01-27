@@ -10,41 +10,45 @@
         <nav class="flex-column">
 
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/dashboard">Dashboard</NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/calendar">Calendar</NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/entries">Entries</NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/new-entry">New Entry</NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/settings">
-                    <span class="nav-ico" aria-hidden="true">
-                        <!-- Settings (gear) icon -->
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 1h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.64.22l2.39-.96c.5.4 1.05.71 1.63.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.24.1.51.01.64-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z" />
-                        </svg>
-                    </span>
-                    Settings
+                <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                    <img src="/icons/home.svg" width="18" height="18" alt="Home" class="nav-icon" />
+                    Home
                 </NavLink>
             </div>
 
             <div class="nav-item px-3">
-                <button type="button" class="nav-link btn btn-link p-0" style="cursor:pointer" @onclick="Logout">
-                    Logout
-                </button>
+                <NavLink class="nav-link" href="/dashboard">
+                    <img src="/icons/dashboard.svg" width="18" height="18" alt="Dashboard" class="nav-icon" />
+                    Dashboard
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/calendar">
+                    <img src="/icons/calendar.svg" width="18" height="18" alt="Calendar" class="nav-icon" />
+                    Calendar
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/entries">
+                    <img src="/icons/document.svg" width="18" height="18" alt="Entries" class="nav-icon" />
+                    Entries
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/new-entry">
+                    <img src="/icons/plus.svg" width="18" height="18" alt="New Entry" class="nav-icon" />
+                    New Entry
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/settings">
+                    <img src="/icons/settings.svg" width="18" height="18" alt="Settings" class="nav-icon" />
+                    Settings
+                </NavLink>
             </div>
         </nav>
     </div>
@@ -60,12 +64,6 @@
     private void HandleUserStateChanged()
     {
         InvokeAsync(StateHasChanged);
-    }
-
-    private void Logout()
-    {
-        UserSession.Logout();
-        Nav.NavigateTo("/login");
     }
 
     public void Dispose()
