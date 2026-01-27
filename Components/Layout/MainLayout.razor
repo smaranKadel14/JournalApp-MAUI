@@ -1,16 +1,26 @@
 ﻿@inherits LayoutComponentBase
 @inject JournalApp.Services.ThemeService Theme
+@inject JournalApp.Services.UserService UserSession
+@inject NavigationManager Nav
 
 <div class="app-root @Theme.CssClass">
     <div class="page">
-        <div class="sidebar">
-            <NavMenu />
-        </div>
+        @* Hide sidebar completely for non-authenticated users on home page *@
+        @if (UserSession.IsLoggedIn || Nav.Uri.Contains("/login") || Nav.Uri.Contains("/signup"))
+        {
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+        }
 
         <main>
-            <div class="top-row px-4">
-                <a href="login">Switch User</a>
-            </div>
+            @* Hide "Switch User" for non-authenticated users *@
+            @if (UserSession.IsLoggedIn || Nav.Uri.Contains("/login") || Nav.Uri.Contains("/signup"))
+            {
+                <div class="top-row px-4">
+                    <a href="login">Switch User</a>
+                </div>
+            }
 
             <article class="content px-4">
                 @Body
