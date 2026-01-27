@@ -1,0 +1,408 @@
+﻿@using JournalApp.Services
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject AnalyticsService AnalyticsService
+@inject JournalApp.Services.UserService UserSession
+
+@* 
+   Analytics Component (Date-range filterable)
+   - Mood Distribution (Pie + bars)
+   - Most Frequent Mood
+   - Daily Streak + Longest Streak
+   - Missed Days list
+   - Most Used Tags (bars)
+   - Tag Breakdown (% of entries per tag-category)
+   - Word Count Trend (avg words per entry per day)
+*@
+
+<div class="settings-card" style="margin-top:14px;">
+    <div class="section-head">
+        <div>
+            <div class="section-title">Analytics & Insights</div>
+            <div class="section-desc">
+                Filter by date range to see your mood, streaks, tags, missed days, and writing trends.
+            </div>
+        </div>
+
+        <div class="badge">@($"{FromDate:MMM dd} → {ToDate:MMM dd}")</div>
+    </div>
+
+    <!-- Date range controls -->
+    <div class="export-grid" style="margin-top:12px;">
+        <div class="export-field">
+            <div class="export-label">From</div>
+            <div class="export-input">
+                <InputDate class="date-input" @bind-Value="FromDate" />
+            </div>
+        </div>
+
+        <div class="export-field">
+            <div class="export-label">To</div>
+            <div class="export-input">
+                <InputDate class="date-input" @bind-Value="ToDate" />
+            </div>
+        </div>
+
+        <div class="export-actions">
+            <button type="button" class="btn-pink" @onclick="LoadAnalytics" disabled="@IsLoading">
+                <span class="btn-ico" aria-hidden="true">↻</span>
+                <span>@(IsLoading ? "Loading..." : "Refresh")</span>
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <div class="error-box" style="margin-top:12px;">@Error</div>
+    }
+
+    @if (Result is not null)
+    {
+        <!-- Summary cards -->
+        <div style="margin-top:14px; display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-desc">Most Frequent Mood</div>
+                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.MostFrequentMood</div>
+            </div>
+
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-desc">Daily Streak</div>
+                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.CurrentStreak days</div>
+                <div class="section-desc" style="margin-top:6px;">(Ending at @ToDate.ToString("MMM dd"))</div>
+            </div>
+
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-desc">Longest Streak</div>
+                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.LongestStreak days</div>
+                <div class="section-desc" style="margin-top:6px;">(Within this range)</div>
+            </div>
+
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-desc">Total Entries</div>
+                <div style="font-weight:900; font-size:18px; margin-top:6px;">@Result.TotalEntries</div>
+            </div>
+        </div>
+
+        <!-- Mood Distribution -->
+        <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-title" style="font-size:14px;">Mood Distribution</div>
+                <div class="section-desc" style="margin-top:4px;">% of Positive / Neutral / Negative moods</div>
+
+                <div style="margin-top:12px; display:flex; gap:14px; align-items:center;">
+                    <!-- Pie chart (SVG) -->
+                    <div style="width:160px; height:160px;">
+                        @if (Result.TotalEntries == 0)
+                        {
+                            <div class="section-desc" style="margin-top:20px;">No data</div>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 42 42" width="160" height="160" role="img" aria-label="Mood pie chart">
+                                @{
+                                    // Values
+                                    var p = GetPct("Positive");
+                                    var n = GetPct("Neutral");
+                                    var g = GetPct("Negative");
+
+                                    // Convert percent to circle segments (circumference = 100)
+                                    var offset = 25; // start position
+                                }
+
+                                <!-- Background ring -->
+                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                        stroke="var(--surface-2)" stroke-width="8" />
+
+                                <!-- Positive -->
+                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                        stroke="var(--accent)" stroke-width="8"
+                                        stroke-dasharray="@($"{p} {100 - p}")"
+                                        stroke-dashoffset="@offset" />
+
+                                <!-- Neutral -->
+                                @{
+                                    offset -= p;
+                                }
+                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                        stroke="rgba(225,107,122,0.55)" stroke-width="8"
+                                        stroke-dasharray="@($"{n} {100 - n}")"
+                                        stroke-dashoffset="@offset" />
+
+                                <!-- Negative -->
+                                @{
+                                    offset -= n;
+                                }
+                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                        stroke="rgba(225,107,122,0.28)" stroke-width="8"
+                                        stroke-dasharray="@($"{g} {100 - g}")"
+                                        stroke-dashoffset="@offset" />
+                            </svg>
+                        }
+                    </div>
+
+                    <!-- Bars + labels -->
+                    <div style="flex:1; display:grid; gap:10px;">
+                        @MoodRow("Positive", "var(--accent)")
+                        @MoodRow("Neutral", "rgba(225,107,122,0.55)")
+                        @MoodRow("Negative", "rgba(225,107,122,0.28)")
+                    </div>
+                </div>
+            </div>
+
+            <!-- Missed days -->
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-title" style="font-size:14px;">Missed Days</div>
+                <div class="section-desc" style="margin-top:4px;">
+                    Dates in this range with no entries.
+                </div>
+
+                @if (Result.MissedDays.Count == 0)
+                {
+                    <div class="section-desc" style="margin-top:12px;">No missed days 🎉</div>
+                }
+                else
+                {
+                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
+                        @foreach (var d in Result.MissedDays.Take(24))
+                        {
+                            <span class="badge" style="background:rgba(225,107,122,0.10);">
+                                @d.ToString("MMM dd")
+                            </span>
+                        }
+
+                        @if (Result.MissedDays.Count > 24)
+                        {
+                            <span class="badge" style="background:rgba(0,0,0,0.06); color:var(--muted); border-color:var(--border);">
+                                +@(Result.MissedDays.Count - 24) more
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <!-- Most Used Tags -->
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-title" style="font-size:14px;">Most Used Tags</div>
+                <div class="section-desc" style="margin-top:4px;">Top tags used in this date range</div>
+
+                @if (Result.TopTags.Count == 0)
+                {
+                    <div class="section-desc" style="margin-top:12px;">No tags found.</div>
+                }
+                else
+                {
+                    var max = Result.TopTags.Max(x => x.Count);
+                    <div style="margin-top:12px; display:grid; gap:10px;">
+                        @foreach (var t in Result.TopTags)
+                        {
+                            var pct = max == 0 ? 0 : (int)Math.Round(t.Count * 100.0 / max);
+
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:12px;">
+                                    <span>@t.Name</span>
+                                    <span style="color:var(--muted)">@t.Count</span>
+                                </div>
+                                <div style="height:10px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden;">
+                                    <div style="height:100%; width:@pct%; background:var(--accent); opacity:.85;"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Tag Breakdown -->
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-title" style="font-size:14px;">Tag Breakdown</div>
+                <div class="section-desc" style="margin-top:4px;">
+                    % of entries per tag-category (Work, Health, Travel, etc.).
+                    <span style="color:var(--muted)">One entry can count in multiple categories.</span>
+                </div>
+
+                @if (Result.TagBreakdown.Count == 0)
+                {
+                    <div class="section-desc" style="margin-top:12px;">No tag breakdown available.</div>
+                }
+                else
+                {
+                    <div style="margin-top:12px; display:grid; gap:10px;">
+                        @foreach (var c in Result.TagBreakdown)
+                        {
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:12px;">
+                                    <span>@c.Name</span>
+                                    <span style="color:var(--muted)">@c.Percent% (@c.Count)</span>
+                                </div>
+                                <div style="height:10px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden;">
+                                    <div style="height:100%; width:@c.Percent%; background:var(--accent); opacity:.55;"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Word Count Trend -->
+        <div style="margin-top:12px;">
+            <div class="settings-card" style="box-shadow:none;">
+                <div class="section-title" style="font-size:14px;">Word Count Trends</div>
+                <div class="section-desc" style="margin-top:4px;">
+                    Average words per entry over time (per day).
+                </div>
+
+                @if (Result.AvgWordsByDay.Count == 0)
+                {
+                    <div class="section-desc" style="margin-top:12px;">No data to plot.</div>
+                }
+                else
+                {
+                    <div style="margin-top:12px; border:1px solid var(--border); border-radius:14px; background:var(--surface-2); padding:10px;">
+                        <svg viewBox="0 0 700 200" width="100%" height="200" role="img" aria-label="Average word trend">
+                            @{
+                                var points = BuildTrendPoints(Result.AvgWordsByDay, 700, 200, 30);
+                            }
+                            <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="@points" opacity="0.9"></polyline>
+                        </svg>
+                    </div>
+
+                    <!-- tiny legend -->
+                    <div class="section-desc" style="margin-top:8px;">
+                        Showing @Result.AvgWordsByDay.Count day(s) with entries.
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private DateTime FromDate { get; set; } = DateTime.Today.AddDays(-30);
+    private DateTime ToDate { get; set; } = DateTime.Today;
+
+    private bool IsLoading { get; set; } = false;
+    private string Error { get; set; } = "";
+
+    private AnalyticsResult? Result { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
+            return;
+
+        await LoadAnalytics();
+    }
+
+    private async Task LoadAnalytics()
+    {
+        Error = "";
+        Result = null;
+
+        if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
+        {
+            Error = "Please log in to view analytics.";
+            return;
+        }
+
+        if (ToDate.Date < FromDate.Date)
+        {
+            Error = "Invalid range: 'To' must be after 'From'.";
+            return;
+        }
+
+        IsLoading = true;
+
+        try
+        {
+            var userId = UserSession.CurrentUserId.Value;
+            Result = await AnalyticsService.GetInsightsAsync(userId, FromDate, ToDate);
+        }
+        catch (Exception ex)
+        {
+            Error = "Analytics failed: " + ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    // ---- Mood helpers ----
+    private int GetPct(string mood)
+    {
+        if (Result is null) return 0;
+        return Result.MoodPercentages.TryGetValue(mood, out var p) ? p : 0;
+    }
+
+    private RenderFragment MoodRow(string mood, string color) => builder =>
+    {
+        if (Result is null) return;
+
+        var pct = GetPct(mood);
+        var count = Result.MoodCounts.TryGetValue(mood, out var c) ? c : 0;
+
+        var seq = 0;
+
+        builder.OpenElement(seq++, "div");
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "style", "display:flex; justify-content:space-between; font-weight:800; font-size:12px;");
+        builder.OpenElement(seq++, "span");
+        builder.AddContent(seq++, mood);
+        builder.CloseElement();
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "style", "color:var(--muted)");
+        builder.AddContent(seq++, $"{pct}% ({count})");
+        builder.CloseElement();
+        builder.CloseElement();
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "style", "height:10px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden;");
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "style", $"height:100%; width:{pct}%; background:{color};");
+        builder.CloseElement();
+        builder.CloseElement();
+
+        builder.CloseElement();
+    };
+
+    /// <summary>
+    /// Creates the SVG polyline points for the trend chart.
+    /// </summary>
+    private static string BuildTrendPoints(SortedDictionary<DateTime, int> data, int width, int height, int padding)
+    {
+        if (data.Count == 0) return "";
+
+        var values = data.Values.ToList();
+        var max = values.Max();
+        if (max <= 0) max = 1;
+
+        var plotW = width - (padding * 2);
+        var plotH = height - (padding * 2);
+
+        // One point case: keep it in the center
+        if (data.Count == 1)
+        {
+            var x = padding + plotW / 2;
+            var y = padding + plotH / 2;
+            return $"{x},{y}";
+        }
+
+        var parts = new List<string>(data.Count);
+        var i = 0;
+
+        foreach (var kv in data)
+        {
+            var x = padding + (int)Math.Round(plotW * (i / (double)(data.Count - 1)));
+            var normalized = kv.Value / (double)max;                // 0..1
+            var y = padding + (int)Math.Round(plotH * (1 - normalized)); // invert for SVG
+            parts.Add($"{x},{y}");
+            i++;
+        }
+
+        return string.Join(" ", parts);
+    }
+}
