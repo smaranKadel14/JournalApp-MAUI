@@ -1,29 +1,30 @@
 ﻿/* Container to center the registration card on the screen */
 .login-container {
-    display: flex; /* [cite: 10] */
-    justify-content: center; /* [cite: 10] */
-    align-items: center; /* [cite: 10] */
-    height: 100vh; /* [cite: 10] */
-    background-color: #f8f9fa; /* [cite: 10] */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: var(--bg);
 }
 
 /* The white card containing the registration form */
 .login-card {
-    background: white; /* [cite: 10, 12] */
-    padding: 40px; /* [cite: 10] */
-    border-radius: 20px; /* [cite: 10, 12] */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* [cite: 10] */
-    width: 400px; /* Adjusted width for more fields [cite: 10] */
-    text-align: center; /* [cite: 10] */
+    background: var(--surface);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px var(--shadow);
+    border: 1px solid var(--border);
+    width: 400px;
+    text-align: center;
 }
 
 /* Style for the "Welcome to Journal Application" header */
 .welcome-text {
-    font-family: 'Segoe UI', sans-serif; /* [cite: 10] */
-    font-size: 1.4rem; /* [cite: 10] */
-    font-weight: bold; /* [cite: 10] */
-    margin-bottom: 30px; /* [cite: 10] */
-    color: #333; /* [cite: 10] */
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: var(--text);
 }
 
 /* Individual input field containers */
@@ -34,50 +35,53 @@
 
     /* Label styling for Username, Email, etc. */
     .input-group label {
-        display: block; /* [cite: 7, 8, 9, 11] */
-        margin-bottom: 5px; /* [cite: 7, 8, 9, 11] */
-        font-weight: 500; /* [cite: 7, 8, 9, 11] */
-        font-size: 0.85rem; /* [cite: 7, 8, 9, 11] */
-        color: #555; /* [cite: 7, 8, 9, 11] */
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--muted);
     }
 
     /* Rounded, light-gray text inputs */
     .input-group input {
-        width: 100%; /* [cite: 7, 8, 9, 11] */
-        padding: 12px; /* [cite: 7, 8, 9, 11] */
-        border: none; /* [cite: 7, 8, 9, 11] */
-        background: #f1f3f5; /* [cite: 7, 8, 9, 11] */
-        border-radius: 10px; /* [cite: 7, 8, 9, 11] */
-        outline: none; /* [cite: 7, 8, 9, 11] */
-        box-sizing: border-box; /* [cite: 7, 8, 9, 11] */
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        border-radius: 10px;
+        outline: none;
+        box-sizing: border-box;
+        color: var(--text);
     }
 
 /* The pink/red "Sign up" button */
 .primary-btn {
-    width: 100%; /* [cite: 12] */
-    padding: 12px; /* [cite: 12] */
-    border: none; /* [cite: 12] */
-    border-radius: 25px; /* [cite: 12] */
-    background-color: #e66b7a; /* Brand color from wireframe [cite: 12] */
-    color: white; /* [cite: 12] */
-    font-weight: bold; /* [cite: 12] */
-    cursor: pointer; /* [cite: 12] */
-    margin-top: 15px; /* [cite: 12] */
-    transition: background 0.3s; /* [cite: 12] */
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--accent);
+    border-radius: 25px;
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background 0.3s;
 }
 
     .primary-btn:hover {
-        background-color: #d15a68; /* [cite: 12] */
+        background: var(--accent-soft);
+        color: var(--accent);
     }
 
 /* Footer link styling */
 .footer-text {
-    margin-top: 20px; /* [cite: 13] */
-    font-size: 0.85rem; /* [cite: 13] */
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--muted);
 }
 
     .footer-text a {
-        color: #e66b7a; /* [cite: 13] */
-        text-decoration: none; /* [cite: 13] */
-        font-weight: bold; /* [cite: 13] */
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: bold;
     }
