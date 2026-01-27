@@ -1,19 +1,13 @@
 ﻿@page "/new-entry"
 @page "/new-entry/{EntryId:int}"
 
-@*
-    NEW ENTRY PAGE (Create + Update + Delete)
-    ----------------------------------------
-*@
-
+@using System.Linq
 @using Microsoft.AspNetCore.Components
-@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.JSInterop
 @using JournalApp.Models
 @using JournalApp.Components.Shared
-@using System.Text.Json;
 
 @inject IJSRuntime JS
 @inject JournalApp.Services.UserService UserSession
@@ -22,11 +16,9 @@
 
 <div class="entry-container">
 
-    <!-- Header row: Back / Page Title / Save / Delete -->
     <div class="header">
         <button type="button" class="back-link" @onclick="GoBack">← Back</button>
 
-        <!-- Title changes depending on whether an entry is loaded from DB -->
         <h1>@(IsEditMode ? "Edit Entry" : "New Entry")</h1>
 
         <div class="header-actions">
@@ -49,13 +41,11 @@
         </div>
     </div>
 
-    <!-- Info message (shown when an entry already exists for selected date) -->
     @if (!string.IsNullOrWhiteSpace(InfoMessage))
     {
         <div class="info-box">@InfoMessage</div>
     }
 
-    <!-- System generated timestamps (read-only UI) -->
     <div class="meta-row">
         <div class="meta-item">
             <span class="meta-label">Created At</span>
@@ -73,15 +63,14 @@
     <input class="title-input"
            type="text"
            placeholder="Enter title..."
-           @bind="Title"
-           @bind:after="TouchUpdated" />
+           @bind-value="Title"
+           @bind-value:event="oninput"
+           @bind-value:after="TouchUpdated" />
 
-    <!-- Date + Category -->
     <div class="row">
         <div class="field">
             <label>Date</label>
 
-            @* Value/ValueChanged used so we can run code when date changes *@
             <InputDate class="input"
                        Value="EntryDate"
                        ValueChanged="@(async (DateTime d) => await OnEntryDateChanged(d))"
@@ -93,7 +82,7 @@
         <div class="field">
             <label>Category</label>
 
-            @* Category currently UI-only (not stored in DB) *@
+            <!-- ✅ No duplicate onchange: bind + bind:after -->
             <select class="input"
                     @bind="Category"
                     @bind:after="TouchUpdated">
@@ -105,21 +94,17 @@
         </div>
     </div>
 
-    @* ✅ Extracted UI: Mood selection *@
     <MoodPicker MoodGroups="MoodGroups"
                 MoodMap="MoodMap"
                 @bind-PrimaryMoodGroup="PrimaryMoodGroup"
                 @bind-SecondaryMoods="SecondaryMoods" />
 
-    @* ✅ Extracted UI: Tags *@
     <TagPicker PrebuiltTags="PrebuiltTags"
                @bind-SelectedTags="SelectedTags" />
 
-    <!-- Content (Rich Text HTML) -->
     <div class="field">
         <label>Content (Rich Text)</label>
 
-        @* ✅ Extracted UI: RichTextEditor *@
         <RichTextEditor @bind-Html="Content" Placeholder="Type a message..." />
 
         <div class="hint">
@@ -127,7 +112,6 @@
         </div>
     </div>
 
-    <!-- Error message -->
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
     {
         <div class="error-box">@ErrorMessage</div>
@@ -135,61 +119,37 @@
 </div>
 
 @code {
-    // -------------------------
-    // Routing / Mode
-    // -------------------------
-
-    [SupplyParameterFromQuery(Name = "date")]
-    [Parameter] public string? Date { get; set; }
-
-
-    // /new-entry/{EntryId:int} will populate this parameter
     [Parameter] public int? EntryId { get; set; }
 
-    // True when we have an entry loaded from DB
     private bool IsEditMode => CurrentEntryDbId.HasValue;
-
-    // DB Id of current entry being edited; null = create mode
     private int? CurrentEntryDbId { get; set; } = null;
-
-    // -------------------------
-    // Fields (stored + UI-only)
-    // -------------------------
 
     private string Title { get; set; } = "";
     private DateTime EntryDate { get; set; } = DateTime.Today;
-    private string Category { get; set; } = "Personal"; // UI-only right now
+    private string Category { get; set; } = "Personal"; // UI-only (for now)
 
-    // Rich HTML content saved to DB
     private string Content { get; set; } = "";
 
-    // System timestamps saved to DB
     private DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     private DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // Mood data
     private readonly List<string> MoodGroups = new() { "Positive", "Neutral", "Negative" };
 
     private readonly Dictionary<string, List<string>> MoodMap = new()
     {
         ["Positive"] = new() { "Happy", "Excited", "Relaxed", "Grateful", "Confident" },
-        ["Neutral"] = new() { "Calm", "Thoughtful", "Curious", "Nostalgic", "Bored" },
+        ["Neutral"]  = new() { "Calm", "Thoughtful", "Curious", "Nostalgic", "Bored" },
         ["Negative"] = new() { "Sad", "Angry", "Stressed", "Lonely", "Anxious" }
     };
 
-    // Stored in DB as JournalEntry.Mood (analytics)
     private string PrimaryMoodGroup { get; set; } = "Neutral";
-
-    // UI-only (not stored)
     private List<string> SecondaryMoods { get; set; } = new();
 
-    // Categories (UI-only)
     private readonly List<string> Categories = new()
     {
         "Personal", "Work", "Studies", "Family", "Friends", "Health", "Self-care", "Travel", "Finance"
     };
 
-    // Tags (UI-only)
     private readonly List<string> PrebuiltTags = new()
     {
         "Work","Career","Studies","Family","Friends","Relationships","Health","Fitness","Personal Growth","Self-care",
@@ -199,73 +159,51 @@
 
     private List<string> SelectedTags { get; set; } = new();
 
-    // UI state
     private bool IsSaving { get; set; } = false;
     private string ErrorMessage { get; set; } = "";
     private string InfoMessage { get; set; } = "";
 
-    // -------------------------
-    // Helpers
-    // -------------------------
-
-    /// <summary>
-    /// Strip HTML tags to validate that the user typed real text.
-    /// Prevents saving empty content like "<br>".
-    /// </summary>
     private string StripHtml(string html)
     {
         if (string.IsNullOrWhiteSpace(html)) return "";
-
         var noTags = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", string.Empty);
         return System.Net.WebUtility.HtmlDecode(noTags).Trim();
     }
 
-    /// <summary>
-    /// Updates the UI-only UpdatedAt label when user edits.
-    /// </summary>
     private void TouchUpdated()
     {
         UpdatedAt = DateTime.UtcNow;
     }
 
-    // -------------------------
-    // Lifecycle
-    // -------------------------
+    // ✅ helper to load tags/moods from CSV stored in DB
+    private static List<string> SplitCsv(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return new();
+        return csv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                  .Select(x => x.Trim())
+                  .Where(x => x.Length > 0)
+                  .Distinct()
+                  .ToList();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-
-        if (!string.IsNullOrWhiteSpace(Date) && DateTime.TryParse(Date, out var parsed))
-        {
-            EntryDate = parsed.Date;
-        }
-
-        // Must be logged in
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
         {
             Nav.NavigateTo("/login");
             return;
         }
 
-        // If opened by id: load that entry
         if (EntryId.HasValue)
         {
             await LoadEntryByIdAsync(EntryId.Value);
             return;
         }
 
-        // Otherwise: load today's entry if exists (or create mode)
         await LoadEntryForDateAsync();
     }
 
-    // -------------------------
-    // Navigation + Date loading
-    // -------------------------
-
-    private void GoBack()
-    {
-        Nav.NavigateTo("/dashboard");
-    }
+    private void GoBack() => Nav.NavigateTo("/dashboard");
 
     private async Task OnEntryDateChanged(DateTime newDate)
     {
@@ -273,10 +211,6 @@
         await LoadEntryForDateAsync();
     }
 
-    /// <summary>
-    /// Loads entry for EntryDate for the current user.
-    /// If entry exists -> edit mode; else -> create mode.
-    /// </summary>
     private async Task LoadEntryForDateAsync()
     {
         ErrorMessage = "";
@@ -291,18 +225,18 @@
 
         if (existing == null)
         {
-            // Create mode defaults
             Title = "";
             Content = "";
             PrimaryMoodGroup = "Neutral";
 
+            SecondaryMoods = new();
+            SelectedTags = new();
+
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
-
             return;
         }
 
-        // Edit mode
         CurrentEntryDbId = existing.Id;
         Title = existing.Title;
         Content = existing.Content ?? "";
@@ -311,17 +245,9 @@
         if (!MoodMap.ContainsKey(PrimaryMoodGroup))
             PrimaryMoodGroup = "Neutral";
 
-        // Deserialize secondary moods and tags
-        try
-        {
-            SecondaryMoods = JsonSerializer.Deserialize<List<string>>(existing.SecondaryMoods ?? "[]") ?? new List<string>();
-            SelectedTags = JsonSerializer.Deserialize<List<string>>(existing.Tags ?? "[]") ?? new List<string>();
-        }
-        catch
-        {
-            SecondaryMoods = new List<string>();
-            SelectedTags = new List<string>();
-        }
+        // ✅ restore lists from DB (requires properties in JournalEntry model)
+        SecondaryMoods = SplitCsv(existing.SecondaryMoodsCsv);
+        SelectedTags = SplitCsv(existing.TagsCsv);
 
         CreatedAt = existing.CreatedAt;
         UpdatedAt = existing.UpdatedAt;
@@ -330,9 +256,6 @@
         InfoMessage = "An entry already exists for this date. Saving will update it.";
     }
 
-    /// <summary>
-    /// Loads entry by DB Id (route: /new-entry/{EntryId})
-    /// </summary>
     private async Task LoadEntryByIdAsync(int id)
     {
         ErrorMessage = "";
@@ -357,29 +280,15 @@
         if (!MoodMap.ContainsKey(PrimaryMoodGroup))
             PrimaryMoodGroup = "Neutral";
 
-        // Deserialize secondary moods and tags
-        try
-        {
-            SecondaryMoods = JsonSerializer.Deserialize<List<string>>(existing.SecondaryMoods ?? "[]") ?? new List<string>();
-            SelectedTags = JsonSerializer.Deserialize<List<string>>(existing.Tags ?? "[]") ?? new List<string>();
-        }
-        catch
-        {
-            SecondaryMoods = new List<string>();
-            SelectedTags = new List<string>();
-        }
+        SecondaryMoods = SplitCsv(existing.SecondaryMoodsCsv);
+        SelectedTags = SplitCsv(existing.TagsCsv);
 
         EntryDate = existing.EntryDate.Date;
         CreatedAt = existing.CreatedAt;
         UpdatedAt = existing.UpdatedAt;
-        UpdatedAt = existing.UpdatedAt;
 
         InfoMessage = "Editing an existing entry.";
     }
-
-    // -------------------------
-    // Save / Delete
-    // -------------------------
 
     private async Task SaveEntry()
     {
@@ -393,7 +302,6 @@
             return;
         }
 
-        // Validation
         if (string.IsNullOrWhiteSpace(Title))
         {
             ErrorMessage = "Title is required.";
@@ -413,7 +321,6 @@
             var userId = UserSession.CurrentUserId.Value;
             var day = EntryDate.Date;
 
-            // EDIT: update existing by id
             if (CurrentEntryDbId.HasValue)
             {
                 var existing = await DB.JournalEntries
@@ -428,9 +335,11 @@
                 existing.Title = Title.Trim();
                 existing.Content = Content;
                 existing.Mood = PrimaryMoodGroup;
-                existing.SecondaryMoods = JsonSerializer.Serialize(SecondaryMoods);
-                existing.Tags = JsonSerializer.Serialize(SelectedTags);
                 existing.EntryDate = day;
+
+                existing.SecondaryMoodsCsv = string.Join(",", SecondaryMoods);
+                existing.TagsCsv = string.Join(",", SelectedTags);
+
                 existing.UpdatedAt = DateTime.UtcNow;
 
                 await DB.SaveChangesAsync();
@@ -438,18 +347,18 @@
                 return;
             }
 
-            // CREATE: enforce one-per-day
             var existingForDay = await DB.JournalEntries
                 .FirstOrDefaultAsync(e => e.UserId == userId && e.EntryDate == day);
 
             if (existingForDay != null)
             {
-                // If already exists for day, update instead of creating
                 existingForDay.Title = Title.Trim();
                 existingForDay.Content = Content;
                 existingForDay.Mood = PrimaryMoodGroup;
-                existingForDay.SecondaryMoods = JsonSerializer.Serialize(SecondaryMoods);
-                existingForDay.Tags = JsonSerializer.Serialize(SelectedTags);
+
+                existingForDay.SecondaryMoodsCsv = string.Join(",", SecondaryMoods);
+                existingForDay.TagsCsv = string.Join(",", SelectedTags);
+
                 existingForDay.UpdatedAt = DateTime.UtcNow;
 
                 CurrentEntryDbId = existingForDay.Id;
@@ -459,14 +368,15 @@
                 return;
             }
 
-            // Create new entry
             var entry = new JournalEntry
             {
                 Title = Title.Trim(),
                 Content = Content,
                 Mood = PrimaryMoodGroup,
-                SecondaryMoods = JsonSerializer.Serialize(SecondaryMoods),
-                Tags = JsonSerializer.Serialize(SelectedTags),
+
+                SecondaryMoodsCsv = string.Join(",", SecondaryMoods),
+                TagsCsv = string.Join(",", SelectedTags),
+
                 UserId = userId,
                 EntryDate = day,
                 CreatedAt = DateTime.UtcNow,
@@ -496,7 +406,6 @@
         if (!CurrentEntryDbId.HasValue) return;
         if (UserSession.CurrentUserId is null) return;
 
-        // JS confirm dialog
         var ok = await JS.InvokeAsync<bool>("confirm", "Delete this entry?");
         if (!ok) return;
 

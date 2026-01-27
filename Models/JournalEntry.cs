@@ -14,7 +14,7 @@ public class JournalEntry
     [Required]
     public string Content { get; set; } = string.Empty;
 
-    // This is the "daily journal date" (only ONE entry per day per user)
+    // Daily entry date (only ONE entry per day per user)
     [Required]
     public DateTime EntryDate { get; set; } = DateTime.Today;
 
@@ -22,15 +22,15 @@ public class JournalEntry
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // We store primary mood (required in UI); you can expand later
+    // Primary mood group stored (Positive/Neutral/Negative)
     [Required]
     public string Mood { get; set; } = "Neutral";
 
-    // Store secondary moods as JSON string
-    public string SecondaryMoods { get; set; } = "[]";
+    // ✅ NEW: store secondary moods as CSV in DB (e.g., "Sad,Anxious")
+    public string SecondaryMoodsCsv { get; set; } = "";
 
-    // Store tags as JSON string
-    public string Tags { get; set; } = "[]";
+    // ✅ NEW: store tags as CSV in DB (e.g., "Work,Study,Family")
+    public string TagsCsv { get; set; } = "";
 
     [Required]
     public int UserId { get; set; }
