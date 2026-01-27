@@ -35,48 +35,44 @@
         </div>
     </header>
 
-    <!-- Analytics Summary Cards -->
-    <section class="summary-grid">
-        <!-- Most Frequent Mood -->
-        <div class="summary-card">
-            <div class="summary-top">
-                <div class="summary-icon" aria-hidden="true">⭐</div>
-                <div class="summary-meta">
-                    <div class="summary-label">Most Frequent Mood</div>
-                    <div class="summary-value">@MostFrequentMood</div>
+    <!-- Stats -->
+    <section class="stats-grid">
+        <!-- Current streak -->
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">🔥</div>
+                <div class="stat-meta">
+                    <div class="stat-label">Current Streak</div>
+                    <div class="stat-value">
+                        @CurrentStreak <span class="stat-unit">days</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Daily Streak -->
-        <div class="summary-card">
-            <div class="summary-top">
-                <div class="summary-icon" aria-hidden="true">🔥</div>
-                <div class="summary-meta">
-                    <div class="summary-label">Daily Streak</div>
-                    <div class="summary-value">@CurrentStreak <span class="summary-unit">days</span></div>
+        <!-- Most frequent mood -->
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">🙂</div>
+                <div class="stat-meta">
+                    <div class="stat-label">Most Frequent Mood</div>
+
+                    <div class="stat-value">
+                        <span class="mood-pill @MoodClass(MostFrequentMood)">
+                            @MostFrequentMood
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Longest Streak -->
-        <div class="summary-card">
-            <div class="summary-top">
-                <div class="summary-icon" aria-hidden="true">🏆</div>
-                <div class="summary-meta">
-                    <div class="summary-label">Longest Streak</div>
-                    <div class="summary-value">@LongestStreak <span class="summary-unit">days</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Entries -->
-        <div class="summary-card">
-            <div class="summary-top">
-                <div class="summary-icon" aria-hidden="true">📒</div>
-                <div class="summary-meta">
-                    <div class="summary-label">Total Entries</div>
-                    <div class="summary-value">@TotalEntries</div>
+        <!-- Entries this week -->
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">🗓️</div>
+                <div class="stat-meta">
+                    <div class="stat-label">Entries this Week</div>
+                    <div class="stat-value">@EntriesThisWeek</div>
                 </div>
             </div>
         </div>
@@ -136,8 +132,6 @@
     // Dashboard data
     private List<JournalEntry> RecentEntries { get; set; } = new();
     private int CurrentStreak { get; set; } = 0;
-    private int LongestStreak { get; set; } = 0;
-    private int TotalEntries { get; set; } = 0;
     private int EntriesThisWeek { get; set; } = 0;
     private string MostFrequentMood { get; set; } = "—";
 
@@ -169,10 +163,6 @@
                 .Take(10)
                 .ToListAsync();
 
-            // Calculate total entries
-            TotalEntries = await DB.JournalEntries
-                .CountAsync(e => e.UserId == userId);
-
             // Find today's entry Id (if it exists)
             TodayEntryId = await DB.JournalEntries
                 .Where(e => e.UserId == userId && e.EntryDate == today)
@@ -193,9 +183,6 @@
 
             // Current streak (count continuous days ending today)
             CurrentStreak = await CalculateCurrentStreakAsync(userId);
-
-            // Calculate longest streak
-            LongestStreak = await CalculateLongestStreakAsync(userId);
         }
         finally
         {
@@ -239,43 +226,6 @@
         }
 
         return streak;
-    }
-
-    private async Task<int> CalculateLongestStreakAsync(int userId)
-    {
-        var today = DateTime.Today;
-        var start = today.AddDays(-365); // Look back up to a year
-
-        var dates = await DB.JournalEntries
-            .Where(e => e.UserId == userId && e.EntryDate >= start && e.EntryDate <= today)
-            .Select(e => e.EntryDate)
-            .Distinct()
-            .OrderBy(d => d)
-            .ToListAsync();
-
-        if (dates.Count == 0)
-            return 0;
-
-        var longestStreak = 0;
-        var currentStreak = 0;
-        var previousDate = (DateTime?)null;
-
-        foreach (var date in dates)
-        {
-            if (previousDate.HasValue && date == previousDate.Value.AddDays(1))
-            {
-                currentStreak++;
-            }
-            else
-            {
-                currentStreak = 1;
-            }
-
-            longestStreak = Math.Max(longestStreak, currentStreak);
-            previousDate = date;
-        }
-
-        return longestStreak;
     }
 
     private string GetSnippet(string content)

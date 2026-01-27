@@ -8,21 +8,20 @@
 
 .mood-opt {
     padding: 8px 15px;
-    border: 1px solid var(--border);
+    border: 1px solid #ddd;
     border-radius: 10px;
-    background: var(--surface);
+    background: white;
     cursor: pointer;
     transition: 0.15s ease;
-    color: var(--text);
 }
 
     .mood-opt:hover {
-        background: var(--surface-2);
+        background: #f8f9fa;
     }
 
     .mood-opt.selected {
-        border-color: var(--accent);
-        background: var(--accent-soft);
+        border-color: #e66b7a;
+        background: rgba(230, 107, 122, 0.12);
     }
 
 /* Secondary groups */

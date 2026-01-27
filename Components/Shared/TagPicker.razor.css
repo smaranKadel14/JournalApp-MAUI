@@ -7,19 +7,18 @@
 }
 
 .tag-btn {
-    background: var(--surface-2);
+    background: #f1f3f5;
     padding: 6px 14px;
     border-radius: 15px;
     font-size: 0.85rem;
-    color: var(--muted);
-    border: 1px solid var(--border);
+    color: #666;
+    border: 1px solid transparent;
     cursor: pointer;
 }
 
     .tag-btn.selected {
-        background: var(--accent);
-        color: white;
-        border-color: var(--accent);
+        background: #e66b7a;
+        color: #fff;
     }
 
 .tag-add {

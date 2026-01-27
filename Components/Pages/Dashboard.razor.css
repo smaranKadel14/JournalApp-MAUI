@@ -70,14 +70,14 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: linear-gradient(180deg, rgba(224,100,119,0.95), rgba(200,70,90,0.95));
+    background: linear-gradient(180deg, rgba(225,107,122,0.95), rgba(200,70,90,0.95));
     color: #fff;
-    border: 1px solid rgba(224,100,119,0.55);
+    border: 1px solid rgba(225,107,122,0.55);
     padding: 12px 18px;
     border-radius: 999px;
     font-weight: 900;
     cursor: pointer;
-    box-shadow: 0 12px 26px rgba(224,100,119,0.18);
+    box-shadow: 0 12px 26px rgba(225,107,122,0.18);
     transition: transform .08s ease, filter .08s ease;
 }
 
@@ -92,78 +92,7 @@
     }
 
 /* =========================================
-   Analytics Summary Cards (4 cards)
-========================================= */
-
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
-    margin: 18px 0 22px;
-}
-
-@media (max-width: 900px) {
-    .summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 600px) {
-    .summary-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.summary-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 18px 18px;
-    box-shadow: 0 10px 24px var(--shadow);
-}
-
-.summary-top {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.summary-icon {
-    font-size: 30px;
-    line-height: 1;
-    opacity: 0.95;
-}
-
-.summary-meta {
-    display: grid;
-    gap: 6px;
-    min-width: 0;
-}
-
-.summary-label {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--muted);
-    letter-spacing: 0.2px;
-}
-
-.summary-value {
-    font-size: 22px;
-    font-weight: 900;
-    color: var(--text);
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.summary-unit {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--muted);
-}
-
-/* =========================================
-   Stats Grid (Legacy - kept for compatibility)
+   Stats Grid (Less tight)
 ========================================= */
 
 .stats-grid {

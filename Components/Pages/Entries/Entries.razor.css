@@ -26,12 +26,12 @@
 
 .subtitle {
     margin: 6px 0 0 0;
-    color: var(--muted);
+    color: #777;
     font-size: 1rem;
 }
 
 .primary-btn {
-    background: var(--accent);
+    background: #e66b7a;
     color: white;
     border: none;
     padding: 10px 18px;
@@ -50,9 +50,9 @@
     flex-wrap: wrap;
     align-items: flex-end;
     padding: 16px;
-    border: 1px solid var(--border);
+    border: 1px solid #eee;
     border-radius: 16px;
-    background: var(--surface);
+    background: #fff;
     margin-bottom: 18px;
 }
 
@@ -66,17 +66,16 @@
 
     .filter-item label {
         font-weight: 700;
-        color: var(--muted);
+        color: #555;
     }
 
 .input {
-    border: 1px solid var(--border);
+    border: 1px solid #eee;
     border-radius: 12px;
     padding: 10px 14px;
-    background: var(--surface-2);
+    background: #fafafa;
     outline: none;
     font-family: inherit;
-    color: var(--text);
 }
 
 .filter-actions {
@@ -85,27 +84,26 @@
 }
 
 .ghost-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: #ffffff;
+    border: 1px solid #eee;
     padding: 10px 16px;
     border-radius: 12px;
     cursor: pointer;
     font-weight: 700;
-    color: var(--text);
 }
 
 .clear-btn {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
+    background: #fafafa;
+    border: 1px solid #eee;
     padding: 10px 16px;
     border-radius: 12px;
     cursor: pointer;
     font-weight: 700;
-    color: var(--muted);
+    color: #666;
 }
 
 .status-text {
-    color: var(--muted);
+    color: #777;
     margin-top: 10px;
 }
 
@@ -120,17 +118,17 @@
     justify-content: space-between;
     align-items: center;
     gap: 14px;
-    border: 1px solid var(--border);
+    border: 1px solid #eee;
     border-radius: 16px;
     padding: 16px 18px;
-    background: var(--surface);
+    background: #fff;
     cursor: pointer;
     transition: 0.12s ease;
 }
 
     .item:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 25px var(--shadow);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.04);
     }
 
 .item-left {
@@ -141,13 +139,13 @@
 }
 
 .date {
-    color: var(--muted);
+    color: #777;
     font-size: 0.95rem;
 }
 
 .title {
     font-weight: 800;
-    color: var(--text);
+    color: #222;
     font-size: 1.1rem;
     white-space: nowrap;
     overflow: hidden;
@@ -155,7 +153,7 @@
 }
 
 .snippet {
-    color: var(--muted);
+    color: #666;
     font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
@@ -189,25 +187,25 @@
     }
 
     .mood-pill.negative {
-        background: rgba(224, 100, 119, 0.12);
-        border-color: rgba(224, 100, 119, 0.35);
-        color: var(--accent);
+        background: rgba(230, 107, 122, 0.12);
+        border-color: rgba(230, 107, 122, 0.35);
+        color: #a63846;
     }
 
 /* Empty + error states */
 .empty-state {
-    border: 1px dashed var(--border);
+    border: 1px dashed #eee;
     border-radius: 16px;
     padding: 18px;
-    color: var(--muted);
-    background: var(--surface);
+    color: #666;
+    background: #fff;
 }
 
 .error-box {
     margin-top: 10px;
-    background: rgba(224, 100, 119, 0.12);
-    border: 1px solid rgba(224, 100, 119, 0.35);
-    color: var(--accent);
+    background: rgba(230, 107, 122, 0.12);
+    border: 1px solid rgba(230, 107, 122, 0.35);
+    color: #a63846;
     padding: 12px 14px;
     border-radius: 12px;
 }
@@ -219,8 +217,8 @@
     gap: 16px;
     margin-top: 24px;
     padding: 20px;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: #fff;
+    border: 1px solid #eee;
     border-radius: 16px;
 }
 
@@ -233,7 +231,7 @@
 }
 
 .pagination-text {
-    color: var(--muted);
+    color: #666;
     font-size: 0.95rem;
     font-weight: 500;
 }
@@ -247,34 +245,34 @@
 }
 
 .pagination-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: #fff;
+    border: 1px solid #eee;
     padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--text);
+    color: #555;
     transition: all 0.2s ease;
     min-width: 40px;
 }
 
     .pagination-btn:hover:not(:disabled) {
-        background: var(--surface-2);
-        border-color: var(--accent);
-        color: var(--accent);
+        background: #f8f9fa;
+        border-color: #e66b7a;
+        color: #e66b7a;
         transform: translateY(-1px);
     }
 
     .pagination-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        background: var(--surface-2);
+        background: #fafafa;
     }
 
     .pagination-btn.active {
-        background: var(--accent);
-        border-color: var(--accent);
+        background: #e66b7a;
+        border-color: #e66b7a;
         color: white;
     }
 
@@ -293,7 +291,7 @@
 
     .page-size-selector label {
         font-weight: 600;
-        color: var(--muted);
+        color: #555;
         font-size: 0.9rem;
     }
 
