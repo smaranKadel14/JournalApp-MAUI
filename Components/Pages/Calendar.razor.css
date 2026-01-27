@@ -1,6 +1,7 @@
 ﻿/* Container */
 .cal-wrap {
     padding: 18px;
+    color: var(--text);
 }
 
 /* Top bar */
@@ -50,6 +51,7 @@
 .cal-actions {
     display: flex;
     gap: 10px;
+    color: var(--text);
 }
 
 /* Buttons */
@@ -101,6 +103,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 12px;
+    color: var(--text);
 }
 
 .cal-dow {
@@ -119,6 +122,7 @@
     border: 1px solid var(--border);
     box-shadow: 0 8px 18px var(--shadow);
     transition: transform .08s ease, box-shadow .08s ease;
+    color: var(--text);
 }
 
     .cal-cell:hover {
@@ -181,6 +185,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    color: var(--text);
 }
 
 .cal-chip {
@@ -192,6 +197,7 @@
     cursor: pointer;
     background: var(--accent-soft);
     border: 1px solid rgba(224, 100, 119, 0.30);
+    color: var(--text);
 }
 
     .cal-chip:hover {
