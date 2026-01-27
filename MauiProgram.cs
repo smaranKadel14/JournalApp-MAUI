@@ -5,6 +5,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using System.Diagnostics;
 
+// ✅ Add this for QuestPDF license
+using QuestPDF.Infrastructure;
+
 namespace JournalApp;
 
 public static class MauiProgram
@@ -12,6 +15,11 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
+        // ✅ IMPORTANT:
+        // QuestPDF requires setting a license ONCE at startup.
+        // Community license is free under QuestPDF terms (most student projects).
+        QuestPDF.Settings.License = LicenseType.Community;
 
         builder
             .UseMauiApp<App>()
@@ -22,33 +30,33 @@ public static class MauiProgram
 
         builder.Services.AddMauiBlazorWebView();
 
-        // Theme must be Singleton
+        // Theme service (you used Singleton already)
         builder.Services.AddSingleton<ThemeService>();
 
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
 
-        // SQLite file in AppDataDirectory
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "journal.db");
         Debug.WriteLine($"DB PATH = {dbPath}");
 
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite($"Data Source={dbPath}"));
 
-        // User session should be Singleton (shared across whole app)
-        builder.Services.AddSingleton<UserService>();
-
-        // Uses DbContext -> Scoped
+        // Prefer Scoped if it uses DbContext
+        builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<JournalEntryService>();
+
+        // ✅ PDF export service should be Scoped (it reads DB and creates file per request)
+        builder.Services.AddScoped<PdfExportService>();
 
         var app = builder.Build();
 
-        // Load saved theme at startup
+        // Load theme at startup
         var theme = app.Services.GetRequiredService<ThemeService>();
         theme.Load();
 
-        // Apply migrations safely
+        // Apply migrations at startup
         try
         {
             using var scope = app.Services.CreateScope();

@@ -1,19 +1,24 @@
 ﻿@page "/settings"
-
+@using JournalApp.Services
 @using Microsoft.AspNetCore.Components.Forms
+
+@inject ThemeService Theme
+@inject PdfExportService PdfExport
+@inject UserService UserSession
 @inject NavigationManager Nav
-@inject JournalApp.Services.ThemeService Theme
 
 <div class="settings-wrap">
+
     <div class="settings-top">
         <button type="button" class="back-link" @onclick="GoBack">← Back</button>
 
         <div class="settings-title">
             <div class="settings-ico" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                    <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 1h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.64.22l2.39-.96c.5.4 1.05.71 1.63.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.24.1.51.01.64-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z" />
+                    <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.27 7.27 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 1h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z" />
                 </svg>
             </div>
+
             <div>
                 <div class="settings-h">Settings</div>
                 <div class="settings-sub">Personalize your JournalApp</div>
@@ -21,6 +26,7 @@
         </div>
     </div>
 
+    <!-- THEME -->
     <div class="settings-card">
         <div class="section-head">
             <div>
@@ -30,7 +36,8 @@
             <div class="badge">@Cap(SelectedTheme)</div>
         </div>
 
-        <InputRadioGroup class="theme-grid" @bind-Value="SelectedTheme">
+        <InputRadioGroup class="theme-grid" @bind-Value="SelectedTheme" @onchange="OnThemeChanged">
+
             <label class="theme-card">
                 <InputRadio class="theme-radio" Value="@("light")" />
                 <div class="theme-inner">
@@ -41,7 +48,7 @@
                     </div>
                     <div class="theme-text">
                         <div class="theme-name">Light</div>
-                        <div class="theme-desc">Bright &amp; clean</div>
+                        <div class="theme-desc">Bright & clean</div>
                     </div>
                 </div>
             </label>
@@ -60,43 +67,127 @@
                     </div>
                 </div>
             </label>
+
         </InputRadioGroup>
 
-        <div class="tip">
-            Tip: Your choice is saved and stays after restarting the app.
-        </div>
+        <div class="tip">Tip: Your choice is saved and stays after restarting the app.</div>
     </div>
 
-    @* Debug box (remove later) *@
-    <div style="margin-top:12px; font-size:12px; color:var(--muted);">
-        ThemeService: <b>@Theme.CurrentTheme</b> | CssClass: <b>@Theme.CssClass</b>
+    <!-- EXPORT PDF -->
+    <div class="settings-card" style="margin-top: 14px;">
+        <div class="section-head">
+            <div>
+                <div class="section-title">Export Journals (PDF)</div>
+                <div class="section-desc">Export multiple entries as a PDF by date range.</div>
+            </div>
+        </div>
+
+        <div class="export-grid">
+            <div class="export-field">
+                <div class="export-label">From</div>
+                <div class="export-input">
+                    <InputDate class="date-input" @bind-Value="FromDate" />
+                </div>
+            </div>
+
+            <div class="export-field">
+                <div class="export-label">To</div>
+                <div class="export-input">
+                    <InputDate class="date-input" @bind-Value="ToDate" />
+                </div>
+            </div>
+
+            <div class="export-actions">
+                <button type="button" class="btn-pink" @onclick="ExportPdf" disabled="@IsExporting">
+                    <span class="btn-ico" aria-hidden="true">⬇</span>
+                    <span>@(IsExporting ? "Exporting..." : "Export PDF")</span>
+                </button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ExportMessage))
+        {
+            <div class="info-box" style="margin-top: 12px;">
+                @ExportMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(ExportError))
+        {
+            <div class="error-box" style="margin-top: 12px;">
+                @ExportError
+            </div>
+        }
     </div>
 </div>
 
 @code {
-    private string _selectedTheme = "light";
+    private string SelectedTheme { get; set; } = "light";
 
-    private string SelectedTheme
-    {
-        get => _selectedTheme;
-        set
-        {
-            if (_selectedTheme == value) return;
-            _selectedTheme = value;
+    private DateTime FromDate { get; set; } = DateTime.Today.AddDays(-7);
+    private DateTime ToDate { get; set; } = DateTime.Today;
 
-            // Apply immediately (no onchange handler needed)
-            Theme.SetTheme(value);
-        }
-    }
+    private bool IsExporting { get; set; } = false;
+    private string ExportMessage { get; set; } = "";
+    private string ExportError { get; set; } = "";
 
     protected override void OnInitialized()
     {
-        // sync UI with saved theme
         SelectedTheme = Theme.CurrentTheme;
     }
 
     private void GoBack() => Nav.NavigateTo("/dashboard");
 
-    private static string Cap(string s) =>
-        string.IsNullOrWhiteSpace(s) ? "" : char.ToUpper(s[0]) + s[1..];
+    private void OnThemeChanged(ChangeEventArgs _)
+    {
+        Theme.SetTheme(SelectedTheme);
+    }
+
+    private async Task ExportPdf()
+    {
+        ExportError = "";
+        ExportMessage = "";
+
+        if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
+        {
+            ExportError = "You must be logged in to export.";
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (ToDate.Date < FromDate.Date)
+        {
+            ExportError = "Invalid range: 'To' must be after 'From'.";
+            return;
+        }
+
+        IsExporting = true;
+
+        try
+        {
+            var userId = UserSession.CurrentUserId.Value;
+            var path = await PdfExport.ExportEntriesAsync(userId, FromDate, ToDate);
+
+            ExportMessage = $"Exported PDF:\n{path}";
+
+            // Windows: open folder automatically
+            var folder = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(folder))
+                System.Diagnostics.Process.Start("explorer.exe", folder);
+        }
+        catch (Exception ex)
+        {
+            ExportError = "Export failed: " + ex.Message;
+        }
+        finally
+        {
+            IsExporting = false;
+        }
+    }
+
+    private static string Cap(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return s;
+        return char.ToUpperInvariant(s[0]) + s.Substring(1);
+    }
 }

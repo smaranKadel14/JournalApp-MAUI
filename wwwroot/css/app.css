@@ -331,3 +331,117 @@ main,
     border: 1px dashed rgba(225, 107, 122, 0.35);
     background: rgba(225, 107, 122, 0.08);
 }
+
+/* ===== Export PDF section ===== */
+.export-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px;
+    margin-top: 12px;
+    align-items: end;
+}
+
+.export-actions .save-btn {
+    min-width: 140px;
+}
+
+/* Make responsive (if window smaller) */
+@media (max-width: 800px) {
+    .export-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .export-actions .save-btn {
+        width: 100%;
+    }
+}
+
+/* ===== Export UI upgrades ===== */
+.export-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 14px;
+    margin-top: 12px;
+    align-items: end;
+}
+
+.export-field {
+    display: grid;
+    gap: 6px;
+}
+
+.export-label {
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.export-input {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 10px 24px var(--shadow);
+}
+
+.date-input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-weight: 800;
+}
+
+/* Pink export button */
+.btn-pink {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(225,107,122,0.55);
+    background: linear-gradient(180deg, rgba(225,107,122,0.95), rgba(200,70,90,0.95));
+    color: white;
+    font-weight: 900;
+    padding: 12px 18px;
+    border-radius: 14px;
+    box-shadow: 0 12px 26px rgba(225,107,122,0.25);
+    cursor: pointer;
+    transition: transform .08s ease, filter .08s ease;
+}
+
+    .btn-pink:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.03);
+    }
+
+    .btn-pink:active {
+        transform: translateY(0px);
+        filter: brightness(0.98);
+    }
+
+    .btn-pink:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+.btn-ico {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.18);
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .export-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-pink {
+        width: 100%;
+        justify-content: center;
+    }
+}
