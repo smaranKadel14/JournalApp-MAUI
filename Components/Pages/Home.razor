@@ -3,44 +3,161 @@
 @inject UserService UserSession
 @inject NavigationManager Nav
 
-<div class="home-container">
-    <div class="header-section">
-
-        @if (UserSession.IsLoggedIn)
-        {
-            <h1>Welcome back@(string.IsNullOrWhiteSpace(UserSession.CurrentUsername) ? "!" : $", {UserSession.CurrentUsername}!")</h1>
-
-            <p @onclick='() => Nav.NavigateTo("/new-entry")'
-               style="cursor:pointer; color: #e66b7a; text-decoration: underline;">
-                What's on your mind today?
-            </p>
-        }
-        else
-        {
-            <h1>Welcome to your Journal</h1>
-
-            <p @onclick='() => Nav.NavigateTo("/login")'
-               style="cursor:pointer; color: #e66b7a; text-decoration: underline;">
-                Please login to start writing.
-            </p>
-        }
-
-    </div>
-
-    <div class="action-cards">
-        @if (UserSession.IsLoggedIn)
-        {
-            <div class="card" @onclick='() => Nav.NavigateTo("/new-entry")'>
-                <div class="icon">✍️</div>
-                <h3>New Entry</h3>
+<div class="landing-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">Your Personal Journal</h1>
+                <p class="hero-subtitle">Capture your thoughts, track your emotions, and preserve your memories in one beautiful space</p>
+                
+                @if (!UserSession.IsLoggedIn)
+                {
+                    <div class="cta-buttons">
+                        <button class="btn-primary" @onclick="GoToSignup">
+                            Start Your Journey
+                        </button>
+                        <button class="btn-secondary" @onclick="GoToLogin">
+                            Sign In
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="welcome-back">
+                        <h2>Welcome back, @UserSession.CurrentUsername!</h2>
+                        <button class="btn-primary" @onclick="GoToDashboard">
+                            Go to Dashboard
+                        </button>
+                    </div>
+                }
             </div>
-        }
-        else
-        {
-            <div class="card" @onclick='() => Nav.NavigateTo("/login")'>
-                <div class="icon">🔑</div>
-                <h3>Login</h3>
+            
+            <div class="hero-visual">
+                <div class="journal-illustration">
+                    <svg viewBox="0 0 400 300" class="hero-svg">
+                        <!-- Beautiful journal illustration -->
+                        <defs>
+                            <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="coverGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#e66b7a;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#d55a6a;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Book base -->
+                        <rect x="100" y="80" width="200" height="140" rx="8" fill="url(#bookGradient)" />
+                        
+                        <!-- Book cover -->
+                        <rect x="100" y="80" width="200" height="140" rx="8" fill="url(#coverGradient)" opacity="0.9" />
+                        
+                        <!-- Book spine -->
+                        <rect x="100" y="80" width="15" height="140" fill="#764ba2" opacity="0.7" />
+                        
+                        <!-- Pages -->
+                        <rect x="110" y="90" width="180" height="120" fill="#f8f9fa" />
+                        <rect x="115" y="95" width="170" height="110" fill="#ffffff" />
+                        
+                        <!-- Text lines on pages -->
+                        <rect x="130" y="110" width="80" height="3" fill="#e9ecef" />
+                        <rect x="130" y="120" width="120" height="3" fill="#e9ecef" />
+                        <rect x="130" y="130" width="100" height="3" fill="#e9ecef" />
+                        <rect x="130" y="140" width="110" height="3" fill="#e9ecef" />
+                        <rect x="130" y="150" width="90" height="3" fill="#e9ecef" />
+                        
+                        <!-- Heart icon on cover -->
+                        <path d="M 200 140 C 200 130, 190 120, 180 120 C 170 120, 160 130, 160 140 C 160 150, 200 190, 200 190 C 200 190, 240 150, 240 140 C 240 130, 230 120, 220 120 C 210 120, 200 130, 200 140 Z" fill="#ffffff" opacity="0.8" />
+                        
+                        <!-- Static decorative elements -->
+                        <circle cx="80" cy="60" r="4" fill="#ffd700" opacity="0.6" />
+                        <circle cx="320" cy="100" r="3" fill="#ff69b4" opacity="0.6" />
+                        <circle cx="350" cy="180" r="5" fill="#87ceeb" opacity="0.6" />
+                        <circle cx="50" cy="150" r="3" fill="#98fb98" opacity="0.6" />
+                        <circle cx="150" cy="50" r="2" fill="#dda0dd" opacity="0.5" />
+                        <circle cx="250" cy="200" r="3" fill="#f0e68c" opacity="0.5" />
+                    </svg>
+                </div>
             </div>
-        }
-    </div>
+        </div>
+    </section>
+
+    @if (!UserSession.IsLoggedIn)
+    {
+        <section class="features-section">
+            <div class="container">
+                <h2 class="section-title">Why Choose Your Journal?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📝</div>
+                        <h3>Write Freely</h3>
+                        <p>Express yourself without limits with our rich text editor and intuitive interface</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Track Your Mood</h3>
+                        <p>Monitor your emotional patterns and gain insights into your mental wellbeing</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🏷️</div>
+                        <h3>Organize with Tags</h3>
+                        <p>Categorize your thoughts and find entries easily with smart tagging system</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📅</div>
+                        <h3>Calendar View</h3>
+                        <p>Navigate through your entries with an intuitive calendar interface and track your writing consistency</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Private & Secure</h3>
+                        <p>Your personal thoughts are protected with secure authentication and private storage</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📈</div>
+                        <h3>Analytics Dashboard</h3>
+                        <p>Get detailed insights about your writing habits, mood trends, and personal growth over time</p>
+                    </div>
+                </div>
+                
+                <div class="cta-section">
+                    <h3>Ready to start your journaling journey?</h3>
+                    <button class="btn-primary btn-large" @onclick="GoToSignup">
+                        Get Started Now - It's Free
+                    </button>
+                </div>
+            </div>
+        </section>
+    }
+
+    <footer class="landing-footer">
+        <div class="container">
+            <p>&copy; 2024 Your Journal. Your personal space for thoughts and memories.</p>
+        </div>
+    </footer>
 </div>
+
+@code {
+    private void GoToSignup()
+    {
+        Nav.NavigateTo("/signup");
+    }
+    
+    private void GoToLogin()
+    {
+        Nav.NavigateTo("/login");
+    }
+    
+    private void GoToDashboard()
+    {
+        Nav.NavigateTo("/dashboard");
+    }
+}

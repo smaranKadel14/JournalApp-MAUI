@@ -3,15 +3,16 @@
 @inject UserService UserSession
 @inject NavigationManager Nav
 
-<div class="nav-scrollable">
-    <nav class="flex-column">
+@* Hide navigation completely for non-authenticated users on home page *@
+@if (UserSession.IsLoggedIn)
+{
+    <div class="nav-scrollable">
+        <nav class="flex-column">
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
+            </div>
 
-        @if (UserSession.IsLoggedIn)
-        {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/dashboard">Dashboard</NavLink>
             </div>
@@ -45,19 +46,9 @@
                     Logout
                 </button>
             </div>
-        }
-        else
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/login">Login</NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/signup">Signup</NavLink>
-            </div>
-        }
-    </nav>
-</div>
+        </nav>
+    </div>
+}
 
 @code {
     protected override void OnInitialized()
