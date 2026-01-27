@@ -5,8 +5,8 @@
 
 <div class="app-root @Theme.CssClass">
     <div class="page">
-        @* Hide sidebar completely for non-authenticated users on home page *@
-        @if (UserSession.IsLoggedIn || Nav.Uri.Contains("/login") || Nav.Uri.Contains("/signup"))
+        @* Hide sidebar completely for non-authenticated users and auth pages *@
+        @if (UserSession.IsLoggedIn && !Nav.Uri.Contains("/login") && !Nav.Uri.Contains("/signup"))
         {
             <div class="sidebar">
                 <NavMenu />
@@ -14,8 +14,8 @@
         }
 
         <main>
-            @* Hide "Switch User" for non-authenticated users *@
-            @if (UserSession.IsLoggedIn || Nav.Uri.Contains("/login") || Nav.Uri.Contains("/signup"))
+            @* Hide "Switch User" for non-authenticated users and auth pages *@
+            @if (UserSession.IsLoggedIn && !Nav.Uri.Contains("/login") && !Nav.Uri.Contains("/signup"))
             {
                 <div class="top-row px-4">
                     <a href="login">Switch User</a>

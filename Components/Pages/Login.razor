@@ -50,7 +50,12 @@
 
         <!-- Navigate to Register page -->
         <p class="footer-text">
-            Don't have an account? <a href="/register">Register here</a>
+            Don't have an account? <a href="" @onclick="GoToRegister">Register here</a>
+        </p>
+        
+        <!-- Back to Home -->
+        <p class="footer-text">
+            <a href="" @onclick="GoToHome">← Back to Home</a>
         </p>
     </div>
 </div>
@@ -108,5 +113,15 @@
             errorMessage = "Something went wrong while logging in.";
             Console.WriteLine(ex.Message);
         }
+    }
+    
+    private void GoToRegister()
+    {
+        Nav.NavigateTo("/signup");
+    }
+    
+    private void GoToHome()
+    {
+        Nav.NavigateTo("/");
     }
 }
