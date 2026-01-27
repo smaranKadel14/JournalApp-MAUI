@@ -1,7 +1,8 @@
 ﻿/* 
-    ENTRIES LIST PAGE STYLES
+    ENTRIES LIST PAGE STYLES WITH PAGINATION
     - I kept the styling consistent with my Dashboard page:
       rounded cards, soft borders, clean spacing.
+    - Added pagination controls that match the existing design.
 */
 
 .entries-wrapper {
@@ -207,4 +208,174 @@
     color: #a63846;
     padding: 12px 14px;
     border-radius: 12px;
+}
+
+/* Pagination Styles */
+.pagination-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 16px;
+}
+
+.pagination-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.pagination-text {
+    color: #666;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+    transition: all 0.2s ease;
+    min-width: 40px;
+}
+
+    .pagination-btn:hover:not(:disabled) {
+        background: #f8f9fa;
+        border-color: #e66b7a;
+        color: #e66b7a;
+        transform: translateY(-1px);
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #fafafa;
+    }
+
+    .pagination-btn.active {
+        background: #e66b7a;
+        border-color: #e66b7a;
+        color: white;
+    }
+
+    .pagination-btn.active:hover {
+        background: #d55a6a;
+        border-color: #d55a6a;
+        transform: translateY(-1px);
+    }
+
+.page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+    .page-size-selector label {
+        font-weight: 600;
+        color: #555;
+        font-size: 0.9rem;
+    }
+
+.page-size-select {
+    width: 80px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .entries-wrapper {
+        padding: 20px 16px;
+    }
+
+    .entries-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+        .entries-header h1 {
+            font-size: 2.5rem;
+        }
+
+    .filters {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .filter-item {
+        min-width: auto;
+    }
+
+    .pagination-wrapper {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .pagination-info {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .pagination-controls {
+        gap: 6px;
+    }
+
+    .pagination-btn {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        min-width: 36px;
+    }
+
+    .page-size-selector {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .entries-wrapper {
+        padding: 16px 12px;
+    }
+
+        .entries-header h1 {
+            font-size: 2rem;
+        }
+
+    .item {
+        padding: 12px 14px;
+    }
+
+    .snippet {
+        max-width: 200px;
+    }
+
+    .pagination-controls {
+        gap: 4px;
+    }
+
+    .pagination-btn {
+        padding: 5px 8px;
+        font-size: 0.8rem;
+        min-width: 32px;
+    }
 }
