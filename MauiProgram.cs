@@ -47,6 +47,9 @@ public static class MauiProgram
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<JournalEntryService>();
 
+        builder.Services.AddScoped<AnalyticsService>();
+
+
         // ✅ PDF export service should be Scoped (it reads DB and creates file per request)
         builder.Services.AddScoped<PdfExportService>();
 
