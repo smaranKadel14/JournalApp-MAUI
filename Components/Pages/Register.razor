@@ -56,7 +56,12 @@
 
         <!-- Link back to login -->
         <p class="footer-text">
-            Already have an account? <a href="/login">Login here</a>
+            Already have an account? <a href="" @onclick="GoToLogin">Login here</a>
+        </p>
+        
+        <!-- Back to Home -->
+        <p class="footer-text">
+            <a href="" @onclick="GoToHome">← Back to Home</a>
         </p>
     </div>
 </div>
@@ -147,5 +152,15 @@
             // Handle any unexpected database/runtime exceptions
             errorMessage = "Database error: " + ex.Message;
         }
+    }
+    
+    private void GoToLogin()
+    {
+        Nav.NavigateTo("/login");
+    }
+    
+    private void GoToHome()
+    {
+        Nav.NavigateTo("/");
     }
 }
