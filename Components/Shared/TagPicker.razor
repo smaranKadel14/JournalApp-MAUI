@@ -6,8 +6,6 @@
 *@
 
 <div class="field">
-    <label>Tags (optional)</label>
-
     <div class="tag-cloud">
         @foreach (var tag in PrebuiltTags)
         {
@@ -24,7 +22,7 @@
     <div class="tag-add">
         <input class="input"
                type="text"
-               placeholder="Add a custom tag and press Enter..."
+               placeholder="Add a custom tag"
                @bind="CustomTag"
                @onkeydown="OnCustomTagKeyDown" />
 
