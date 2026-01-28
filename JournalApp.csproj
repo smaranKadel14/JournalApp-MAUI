@@ -60,7 +60,15 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Remove="wwwroot\icons\icon-192.svg" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Content Include=".gitignore" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="wwwroot\icons\icon-192.svg" />
     </ItemGroup>
 
     <ItemGroup>

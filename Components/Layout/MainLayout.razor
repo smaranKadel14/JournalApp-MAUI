@@ -10,7 +10,7 @@
         {
             <div class="sidebar">
                 <div class="navbar-brand">
-                    <img src="/icon-192.png" alt="Journal Logo" class="navbar-logo" />
+                    <img src="/icons/journal.svg" alt="Journal Logo" class="navbar-logo" />
                     <span class="navbar-title">Journal</span>
                 </div>
                 <NavMenu />
@@ -18,14 +18,6 @@
         }
 
         <main>
-            @* Hide "Switch User" for non-authenticated users and auth pages *@
-            @if (UserSession.IsLoggedIn && !Nav.Uri.Contains("/login") && !Nav.Uri.Contains("/signup"))
-            {
-                <div class="top-row px-4">
-                    <a href="login">Switch User</a>
-                </div>
-            }
-
             <article class="content px-4">
                 @Body
             </article>
