@@ -204,15 +204,43 @@
     position: relative;
 }
 
-.journal-illustration {
+.journal-image-container {
     position: relative;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 16/12;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.hero-svg {
+.journal-image-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.2);
+}
+
+.journal-image {
     width: 100%;
-    max-width: 750px;
-    height: auto;
-    filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.2));
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.journal-image-container:hover .journal-image {
+    transform: scale(1.05);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(230, 107, 122, 0.1) 0%, 
+        rgba(118, 75, 162, 0.1) 100%);
+    pointer-events: none;
 }
 
 /* Features Section */
@@ -360,8 +388,9 @@
         width: 250px;
     }
     
-    .hero-svg {
-        max-width: 500px;
+    .journal-image-container {
+        max-width: 350px;
+        aspect-ratio: 16/12;
     }
     
     .features-grid {

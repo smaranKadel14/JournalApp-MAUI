@@ -4,7 +4,7 @@
 *@
 
 <div class="field">
-    <label>Primary Mood (required)</label>
+    <label>Primary Mood</label>
 
     <div class="mood-selector">
         @foreach (var group in MoodGroups)
@@ -16,14 +16,10 @@
             </button>
         }
     </div>
-
-    <div class="hint">
-        Your primary mood group is stored in DB as <b>Mood</b> (for analytics).
-    </div>
 </div>
 
 <div class="field">
-    <label>Secondary Mood (optional, max 2)</label>
+    <label>Secondary Mood</label>
 
     @foreach (var group in MoodGroups)
     {
@@ -44,10 +40,6 @@
             </div>
         </div>
     }
-
-    <div class="hint">
-        Secondary moods are UI-only for now (we can add DB columns later).
-    </div>
 </div>
 
 @code {

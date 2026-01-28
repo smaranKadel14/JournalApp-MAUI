@@ -195,10 +195,12 @@
             // Current streak (count continuous days ending today)
             CurrentStreak = await CalculateCurrentStreakAsync(userId);
 
-            // TODO: Replace with actual logic to get the total number of entries
-            // For example, if you have a list of JournalEntry objects:
-            // TotalEntries = journalEntries.Count;
-            TotalEntries = 0; // Placeholder value
+            // Calculate longest streak
+            LongestStreak = await CalculateLongestStreakAsync(userId);
+
+            // Get total entries count
+            TotalEntries = await DB.JournalEntries
+                .CountAsync(e => e.UserId == userId);
         }
         finally
         {
@@ -242,6 +244,44 @@
         }
 
         return streak;
+    }
+
+    private async Task<int> CalculateLongestStreakAsync(int userId)
+    {
+        var allDates = await DB.JournalEntries
+            .Where(e => e.UserId == userId)
+            .Select(e => e.EntryDate)
+            .Distinct()
+            .OrderBy(d => d)
+            .ToListAsync();
+
+        if (allDates.Count == 0)
+            return 0;
+
+        var longestStreak = 0;
+        var currentStreak = 1;
+        var previousDate = allDates[0];
+
+        for (int i = 1; i < allDates.Count; i++)
+        {
+            var currentDate = allDates[i];
+            var daysDiff = (currentDate - previousDate).Days;
+
+            if (daysDiff == 1)
+            {
+                currentStreak++;
+            }
+            else
+            {
+                longestStreak = Math.Max(longestStreak, currentStreak);
+                currentStreak = 1;
+            }
+
+            previousDate = currentDate;
+        }
+
+        longestStreak = Math.Max(longestStreak, currentStreak);
+        return longestStreak;
     }
 
     private string GetSnippet(string content)
