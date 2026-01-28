@@ -15,106 +15,135 @@
 @inject NavigationManager Nav
 
 <div class="entry-container">
+    <div class="entry-card">
+        <div class="header">
+            <button type="button" class="back-link" @onclick="GoBack">← Back</button>
 
-    <div class="header">
-        <button type="button" class="back-link" @onclick="GoBack">← Back</button>
+            <h1>@(IsEditMode ? "Edit Entry" : "New Entry")</h1>
 
-        <h1>@(IsEditMode ? "Edit Entry" : "New Entry")</h1>
-
-        <div class="header-actions">
-            @if (IsEditMode)
-            {
-                <button type="button"
-                        class="delete-btn"
-                        @onclick="DeleteEntry"
-                        disabled="@IsSaving">
-                    Delete
-                </button>
-            }
-
-            <button type="button"
-                    class="save-btn"
-                    @onclick="SaveEntry"
-                    disabled="@IsSaving">
-                @(IsSaving ? "Saving..." : "Save")
-            </button>
-        </div>
-    </div>
-
-    @if (!string.IsNullOrWhiteSpace(InfoMessage))
-    {
-        <div class="info-box">@InfoMessage</div>
-    }
-
-    <div class="meta-row">
-        <div class="meta-item">
-            <span class="meta-label">Created At</span>
-            <span class="meta-value">@CreatedAt.ToLocalTime().ToString("g")</span>
-        </div>
-
-        <div class="meta-item">
-            <span class="meta-label">Updated At</span>
-            <span class="meta-value">@UpdatedAt.ToLocalTime().ToString("g")</span>
-        </div>
-    </div>
-
-    <!-- Title -->
-    <label class="sr-only">Title</label>
-    <input class="title-input"
-           type="text"
-           placeholder="Enter title..."
-           @bind-value="Title"
-           @bind-value:event="oninput"
-           @bind-value:after="TouchUpdated" />
-
-    <div class="row">
-        <div class="field">
-            <label>Date</label>
-
-            <InputDate class="input"
-                       Value="EntryDate"
-                       ValueChanged="@(async (DateTime d) => await OnEntryDateChanged(d))"
-                       ValueExpression="(() => EntryDate)" />
-
-            <div class="hint">Only one entry is allowed per day.</div>
-        </div>
-
-        <div class="field">
-            <label>Category</label>
-
-            <!-- ✅ No duplicate onchange: bind + bind:after -->
-            <select class="input"
-                    @bind="Category"
-                    @bind:after="TouchUpdated">
-                @foreach (var c in Categories)
+            <div class="header-actions">
+                @if (IsEditMode)
                 {
-                    <option value="@c">@c</option>
+                    <button type="button"
+                            class="delete-btn"
+                            @onclick="ShowDeleteConfirmation"
+                            disabled="@IsSaving">
+                        Delete
+                    </button>
                 }
-            </select>
+
+                <button type="button"
+                        class="save-btn"
+                        @onclick="SaveEntry"
+                        disabled="@IsSaving">
+                    @(IsSaving ? "Saving..." : "Save")
+                </button>
+            </div>
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(InfoMessage))
+        {
+            <div class="info-box">@InfoMessage</div>
+        }
+
+        <div class="meta-row">
+            <div class="meta-item">
+                <span class="meta-label">Created At</span>
+                <span class="meta-value">@CreatedAt.ToLocalTime().ToString("g")</span>
+            </div>
+
+            <div class="meta-item">
+                <span class="meta-label">Updated At</span>
+                <span class="meta-value">@UpdatedAt.ToLocalTime().ToString("g")</span>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <label class="sr-only">Title</label>
+        <input class="title-input"
+               type="text"
+               placeholder="Enter title..."
+               @bind-value="Title"
+               @bind-value:event="oninput"
+               @bind-value:after="TouchUpdated" />
+
+        <div class="row">
+            <div class="field">
+                <label>Date</label>
+
+                <InputDate class="input"
+                           Value="EntryDate"
+                           ValueChanged="@(async (DateTime d) => await OnEntryDateChanged(d))"
+                           ValueExpression="(() => EntryDate)" />
+
+                <div class="hint">Only one entry is allowed per day.</div>
+            </div>
+
+            <div class="field">
+                <label>Category</label>
+
+                <!-- ✅ No duplicate onchange: bind + bind:after -->
+                <select class="input"
+                        @bind="Category"
+                        @bind:after="TouchUpdated">
+                    @foreach (var c in Categories)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="component-section">
+            <MoodPicker MoodGroups="MoodGroups"
+                        MoodMap="MoodMap"
+                        @bind-PrimaryMoodGroup="PrimaryMoodGroup"
+                        @bind-SecondaryMoods="SecondaryMoods" />
+        </div>
+
+        <div class="component-section">
+            <TagPicker PrebuiltTags="PrebuiltTags"
+                       @bind-SelectedTags="SelectedTags" />
+        </div>
+
+        <div class="field">
+            <label>Content (Rich Text)</label>
+
+            <RichTextEditor @bind-Html="Content" Placeholder="Type a message..." />
+
+            <div class="hint">
+                Select text → Bold/Italic/Link. Lists/Heading apply at cursor.
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <div class="error-box">@ErrorMessage</div>
+        }
     </div>
 
-    <MoodPicker MoodGroups="MoodGroups"
-                MoodMap="MoodMap"
-                @bind-PrimaryMoodGroup="PrimaryMoodGroup"
-                @bind-SecondaryMoods="SecondaryMoods" />
-
-    <TagPicker PrebuiltTags="PrebuiltTags"
-               @bind-SelectedTags="SelectedTags" />
-
-    <div class="field">
-        <label>Content (Rich Text)</label>
-
-        <RichTextEditor @bind-Html="Content" Placeholder="Type a message..." />
-
-        <div class="hint">
-            Select text → Bold/Italic/Link. Lists/Heading apply at cursor.
-        </div>
-    </div>
-
-    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    <!-- Delete Confirmation Modal -->
+    @if (ShowDeleteModal)
     {
-        <div class="error-box">@ErrorMessage</div>
+        <div class="modal-overlay" @onclick="HideDeleteConfirmation">
+            <div class="modal-card" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h3>Delete Entry</h3>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this entry?</p>
+                    <p class="modal-warning">This action cannot be undone.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" @onclick="HideDeleteConfirmation">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn-delete" @onclick="ConfirmDeleteEntry">
+                        Delete Entry
+                    </button>
+                </div>
+            </div>
+        </div>
     }
 </div>
 
@@ -162,6 +191,7 @@
     private bool IsSaving { get; set; } = false;
     private string ErrorMessage { get; set; } = "";
     private string InfoMessage { get; set; } = "";
+    private bool ShowDeleteModal { get; set; } = false;
 
     private string StripHtml(string html)
     {
@@ -204,6 +234,21 @@
     }
 
     private void GoBack() => Nav.NavigateTo("/dashboard");
+
+    private void ShowDeleteConfirmation()
+    {
+        ShowDeleteModal = true;
+    }
+
+    private void HideDeleteConfirmation()
+    {
+        ShowDeleteModal = false;
+    }
+
+    private async Task ConfirmDeleteEntry()
+    {
+        await DeleteEntry();
+    }
 
     private async Task OnEntryDateChanged(DateTime newDate)
     {
@@ -402,12 +447,10 @@
     {
         ErrorMessage = "";
         InfoMessage = "";
+        ShowDeleteModal = false;
 
         if (!CurrentEntryDbId.HasValue) return;
         if (UserSession.CurrentUserId is null) return;
-
-        var ok = await JS.InvokeAsync<bool>("confirm", "Delete this entry?");
-        if (!ok) return;
 
         try
         {
