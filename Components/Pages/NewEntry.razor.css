@@ -199,6 +199,15 @@
     border: 1px solid var(--border);
 }
 
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;

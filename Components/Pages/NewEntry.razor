@@ -69,20 +69,17 @@
 
         <div class="row">
             <div class="field">
-                <label>Date</label>
+                <label>Entry Date</label>
 
                 <InputDate class="input"
                            Value="EntryDate"
                            ValueChanged="@(async (DateTime d) => await OnEntryDateChanged(d))"
                            ValueExpression="(() => EntryDate)" />
-
-                <div class="hint">Only one entry is allowed per day.</div>
             </div>
 
             <div class="field">
                 <label>Category</label>
 
-                <!-- ✅ No duplicate onchange: bind + bind:after -->
                 <select class="input"
                         @bind="Category"
                         @bind:after="TouchUpdated">
@@ -95,6 +92,7 @@
         </div>
 
         <div class="component-section">
+            <div class="section-title">Mood</div>
             <MoodPicker MoodGroups="MoodGroups"
                         MoodMap="MoodMap"
                         @bind-PrimaryMoodGroup="PrimaryMoodGroup"
@@ -102,18 +100,15 @@
         </div>
 
         <div class="component-section">
+            <div class="section-title">Tags</div>
             <TagPicker PrebuiltTags="PrebuiltTags"
                        @bind-SelectedTags="SelectedTags" />
         </div>
 
         <div class="field">
-            <label>Content (Rich Text)</label>
+            <label>Entry Content</label>
 
-            <RichTextEditor @bind-Html="Content" Placeholder="Type a message..." />
-
-            <div class="hint">
-                Select text → Bold/Italic/Link. Lists/Heading apply at cursor.
-            </div>
+            <RichTextEditor @bind-Html="Content" Placeholder="Write your journal entry..." />
         </div>
 
         @if (!string.IsNullOrWhiteSpace(ErrorMessage))
