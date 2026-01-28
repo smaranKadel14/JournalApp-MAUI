@@ -9,6 +9,10 @@
         @if (UserSession.IsLoggedIn && !Nav.Uri.Contains("/login") && !Nav.Uri.Contains("/signup"))
         {
             <div class="sidebar">
+                <div class="navbar-brand">
+                    <img src="/icon-192.png" alt="Journal Logo" class="navbar-logo" />
+                    <span class="navbar-title">Journal</span>
+                </div>
                 <NavMenu />
             </div>
         }
