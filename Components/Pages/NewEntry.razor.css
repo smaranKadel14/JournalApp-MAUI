@@ -190,6 +190,60 @@
     border-radius: 12px;
 }
 
+/* Section subtitles */
+.section-subtitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Section containers */
+.meta-section,
+.title-section,
+.details-section,
+.content-section {
+    margin-bottom: 32px;
+}
+
+/* Improved info banner */
+.info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: linear-gradient(135deg, var(--accent-soft), rgba(224, 100, 119, 0.05));
+    border: 1px solid rgba(224, 100, 119, 0.2);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(224, 100, 119, 0.1);
+}
+
+.info-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-title {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.info-text {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
 /* Component sections */
 .component-section {
     margin-bottom: 32px;

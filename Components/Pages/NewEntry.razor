@@ -43,51 +43,66 @@
 
         @if (!string.IsNullOrWhiteSpace(InfoMessage))
         {
-            <div class="info-box">@InfoMessage</div>
+            <div class="info-banner">
+                <div class="info-icon">ℹ️</div>
+                <div class="info-content">
+                    <div class="info-title">Existing Entry</div>
+                    <div class="info-text">@InfoMessage</div>
+                </div>
+            </div>
         }
 
-        <div class="meta-row">
-            <div class="meta-item">
-                <span class="meta-label">Created At</span>
-                <span class="meta-value">@CreatedAt.ToLocalTime().ToString("g")</span>
-            </div>
+        <div class="meta-section">
+            <div class="section-subtitle">Entry Information</div>
+            <div class="meta-row">
+                <div class="meta-item">
+                    <span class="meta-label">Created</span>
+                    <span class="meta-value">@CreatedAt.ToLocalTime().ToString("g")</span>
+                </div>
 
-            <div class="meta-item">
-                <span class="meta-label">Updated At</span>
-                <span class="meta-value">@UpdatedAt.ToLocalTime().ToString("g")</span>
+                <div class="meta-item">
+                    <span class="meta-label">Last Updated</span>
+                    <span class="meta-value">@UpdatedAt.ToLocalTime().ToString("g")</span>
+                </div>
             </div>
         </div>
 
-        <!-- Title -->
-        <label class="sr-only">Title</label>
-        <input class="title-input"
-               type="text"
-               placeholder="Enter title..."
-               @bind-value="Title"
-               @bind-value:event="oninput"
-               @bind-value:after="TouchUpdated" />
+        <!-- Entry Title -->
+        <div class="title-section">
+            <div class="section-subtitle">Entry Title</div>
+            <label class="sr-only">Title</label>
+            <input class="title-input"
+                   type="text"
+                   placeholder="Enter title..."
+                   @bind-value="Title"
+                   @bind-value:event="oninput"
+                   @bind-value:after="TouchUpdated" />
+        </div>
 
-        <div class="row">
-            <div class="field">
-                <label>Entry Date</label>
+        <div class="details-section">
+            <div class="section-subtitle">Entry Details</div>
+            <div class="row">
+                <div class="field">
+                    <label>Entry Date</label>
 
-                <InputDate class="input"
-                           Value="EntryDate"
-                           ValueChanged="@(async (DateTime d) => await OnEntryDateChanged(d))"
-                           ValueExpression="(() => EntryDate)" />
-            </div>
+                    <InputDate class="input"
+                               Value="EntryDate"
+                               ValueChanged="@(async (DateTime d) => await OnEntryDateChanged(d))"
+                               ValueExpression="(() => EntryDate)" />
+                </div>
 
-            <div class="field">
-                <label>Category</label>
+                <div class="field">
+                    <label>Category</label>
 
-                <select class="input"
-                        @bind="Category"
-                        @bind:after="TouchUpdated">
-                    @foreach (var c in Categories)
-                    {
-                        <option value="@c">@c</option>
-                    }
-                </select>
+                    <select class="input"
+                            @bind="Category"
+                            @bind:after="TouchUpdated">
+                        @foreach (var c in Categories)
+                        {
+                            <option value="@c">@c</option>
+                        }
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -105,10 +120,11 @@
                        @bind-SelectedTags="SelectedTags" />
         </div>
 
-        <div class="field">
-            <label>Entry Content</label>
-
-            <RichTextEditor @bind-Html="Content" Placeholder="Write your journal entry..." />
+        <div class="content-section">
+            <div class="section-subtitle">Entry Content</div>
+            <div class="field">
+                <RichTextEditor @bind-Html="Content" Placeholder="Write your journal entry..." />
+            </div>
         </div>
 
         @if (!string.IsNullOrWhiteSpace(ErrorMessage))
