@@ -13,7 +13,7 @@ namespace JournalApp
 
         protected override Microsoft.Maui.Controls.Window CreateWindow(IActivationState? activationState)
         {
-            var window = new Microsoft.Maui.Controls.Window(new MainPage()) { Title = "JournalApp" };
+            var window = new Microsoft.Maui.Controls.Window(new MainPage()) { Title = "Journal" };
             
             // Set window to truly maximized state on Windows
             if (DeviceInfo.Current.Platform == DevicePlatform.WinUI)
