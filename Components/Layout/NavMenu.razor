@@ -1,14 +1,26 @@
-﻿@using JournalApp.Services
+﻿@*
+    Navigation Menu Component - Sidebar Navigation
+    ==========================================
+    Purpose: Provides the main navigation menu for authenticated users
+    
+    Navigation Structure:
+    - Vertical sidebar layout with icon-based navigation
+    - Hierarchical organization of app sections
+    - Active state indication for current page
+    - Responsive scrollable design
+*@
+@using JournalApp.Services
 @implements IDisposable
 @inject UserService UserSession
 @inject NavigationManager Nav
 
-@* Hide navigation completely for non-authenticated users on home page *@
+<!-- Navigation Menu (only shown when logged in) -->
 @if (UserSession.IsLoggedIn)
 {
     <div class="nav-scrollable">
         <nav class="flex-column">
 
+            <!-- Home Navigation -->
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
                     <img src="/icons/home.svg" width="18" height="18" alt="Home" class="nav-icon" />
@@ -16,6 +28,7 @@
                 </NavLink>
             </div>
 
+            <!-- Dashboard Navigation -->
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/dashboard">
                     <img src="/icons/dashboard.svg" width="18" height="18" alt="Dashboard" class="nav-icon" />
@@ -23,6 +36,7 @@
                 </NavLink>
             </div>
 
+            <!-- Calendar Navigation -->
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/calendar">
                     <img src="/icons/calendar.svg" width="18" height="18" alt="Calendar" class="nav-icon" />
@@ -30,6 +44,7 @@
                 </NavLink>
             </div>
 
+            <!-- Entries Navigation -->
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/entries">
                     <img src="/icons/document.svg" width="18" height="18" alt="Entries" class="nav-icon" />
@@ -37,6 +52,7 @@
                 </NavLink>
             </div>
 
+            <!-- New Entry Navigation -->
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/new-entry">
                     <img src="/icons/plus.svg" width="18" height="18" alt="New Entry" class="nav-icon" />
@@ -44,6 +60,7 @@
                 </NavLink>
             </div>
 
+            <!-- Settings Navigation -->
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/settings">
                     <img src="/icons/settings.svg" width="18" height="18" alt="Settings" class="nav-icon" />
@@ -55,20 +72,21 @@
 }
 
 @code {
+    /// Initializes the navigation menu and subscribes to user state changes
     protected override void OnInitialized()
     {
-        // Subscribe so the nav updates immediately after login/logout
         UserSession.OnChange += HandleUserStateChanged;
     }
 
+    /// Handles user state changes (login/logout) and updates the navigation UI
     private void HandleUserStateChanged()
     {
         InvokeAsync(StateHasChanged);
     }
 
+    /// Cleanup: Unsubscribes from user state change events to prevent memory leaks
     public void Dispose()
     {
-        // Unsubscribe to avoid memory leaks
         UserSession.OnChange -= HandleUserStateChanged;
     }
 }

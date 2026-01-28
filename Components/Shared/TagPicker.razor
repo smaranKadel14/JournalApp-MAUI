@@ -1,11 +1,19 @@
-﻿@using Microsoft.AspNetCore.Components.Web
-
-@* 
-    TagPicker Component
-    -------------------
+﻿@*
+    Tag Picker Component - Tag Selection and Management
+    ================================================
+    Purpose: Allows users to select existing tags and create custom tags for journal entries
+    
+    Tag Selection Features:
+    - Prebuilt tags selection with visual feedback
+    - Custom tag creation with input field
+    - Multiple tag selection support
+    - Selected tags display with removal option
 *@
+@using Microsoft.AspNetCore.Components.Web
 
+<!-- Tag Selection Component -->
 <div class="field">
+    <!-- Prebuilt Tags Cloud -->
     <div class="tag-cloud">
         @foreach (var tag in PrebuiltTags)
         {
@@ -19,6 +27,7 @@
         }
     </div>
 
+    <!-- Custom Tag Input -->
     <div class="tag-add">
         <input class="input"
                type="text"
@@ -31,6 +40,7 @@
         </button>
     </div>
 
+    <!-- Selected Tags Display -->
     @if (SelectedTags.Count > 0)
     {
         <div class="selected-tags">
@@ -46,14 +56,30 @@
 </div>
 
 @code {
+    /// <summary>
+    /// Prebuilt tags available for selection
+    /// </summary>
     [Parameter] public List<string> PrebuiltTags { get; set; } = new();
 
-    // two-way bind SelectedTags
+    /// <summary>
+    /// Currently selected tags
+    /// </summary>
     [Parameter] public List<string> SelectedTags { get; set; } = new();
+    
+    /// <summary>
+    /// Event callback for selected tags changes
+    /// </summary>
     [Parameter] public EventCallback<List<string>> SelectedTagsChanged { get; set; }
 
+    /// <summary>
+    /// Custom tag input value
+    /// </summary>
     private string CustomTag { get; set; } = "";
 
+    /// <summary>
+    /// Toggles a tag selection
+    /// </summary>
+    /// <param name="tag">Tag to toggle</param>
     private async Task ToggleTag(string tag)
     {
         var list = SelectedTags?.ToList() ?? new List<string>();
@@ -64,6 +90,10 @@
         await SelectedTagsChanged.InvokeAsync(list);
     }
 
+    /// <summary>
+    /// Removes a tag from selection
+    /// </summary>
+    /// <param name="tag">Tag to remove</param>
     private async Task RemoveTag(string tag)
     {
         var list = SelectedTags?.ToList() ?? new List<string>();
@@ -71,6 +101,9 @@
         await SelectedTagsChanged.InvokeAsync(list);
     }
 
+    /// <summary>
+    /// Adds a custom tag to selection
+    /// </summary>
     private async Task AddCustomTag()
     {
         var tag = (CustomTag ?? "").Trim();
@@ -85,6 +118,9 @@
         await SelectedTagsChanged.InvokeAsync(list);
     }
 
+    /// <summary>
+    /// Handles Enter key press in custom tag input
+    /// </summary>
     private async Task OnCustomTagKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")

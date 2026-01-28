@@ -1,4 +1,16 @@
-﻿@page "/calendar"
+﻿@*
+    Calendar Page - Interactive Calendar View for Journal Entries
+    ========================================================
+    Purpose: Calendar-based navigation and overview of journal entries
+    
+    Features:
+    - Monthly calendar view with entry indicators
+    - Navigation between months
+    - Quick entry creation from calendar
+    - Visual indicators for entries per day
+    - Hover effects for enhanced interactivity
+*@
+@page "/calendar"
 
 @using Microsoft.EntityFrameworkCore
 @using JournalApp.Models
@@ -9,6 +21,7 @@
 
 <div class="cal-wrap">
 
+    <!-- Calendar Header -->
     <div class="cal-topbar">
         <div class="cal-title">
             <div class="cal-icon">📅</div>
@@ -18,24 +31,29 @@
             </div>
         </div>
 
+        <!-- Calendar Actions -->
         <div class="cal-actions">
             <button class="cal-btn ghost" @onclick="GoToday">Today</button>
             <button class="cal-btn" @onclick="CreateToday">New Entry</button>
         </div>
     </div>
 
+    <!-- Month Navigation Toolbar -->
     <div class="cal-toolbar">
         <button class="cal-nav" @onclick="PrevMonth" aria-label="Previous month">‹</button>
         <div class="cal-month">@CurrentMonth.ToString("MMMM yyyy")</div>
         <button class="cal-nav" @onclick="NextMonth" aria-label="Next month">›</button>
     </div>
 
+    <!-- Calendar Grid -->
     <div class="cal-grid">
+        <!-- Day Names Header -->
         @foreach (var name in DayNames)
         {
             <div class="cal-dow">@name</div>
         }
 
+        <!-- Calendar Cells -->
         @foreach (var cell in Cells)
         {
             var day = cell.Date.Date;
@@ -49,6 +67,7 @@
                  @onmouseenter="() => HoveredDay = day"
                  @onmouseleave="() => HoveredDay = null">
 
+                <!-- Cell Header with Day Number and Add Button -->
                 <div class="cal-cell-head">
                     <div class="cal-daynum">@cell.Date.Day</div>
 
@@ -59,6 +78,7 @@
                     </button>
                 </div>
 
+                <!-- Events List -->
                 <div class="cal-events">
                     @foreach (var e in dayEntries.Take(3))
                     {
@@ -82,16 +102,25 @@
 </div>
 
 @code {
+    /// Day names for calendar header (Monday to Sunday)
     private static readonly string[] DayNames = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
+    /// Currently displayed month
     private DateTime CurrentMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
 
+    /// Calendar cells for the current month view
     private List<CalendarCell> Cells = new();
+    
+    /// Dictionary mapping dates to journal entries
     private Dictionary<DateTime, List<JournalEntry>> EntriesByDay = new();
+    
+    /// Currently hovered day for UI interactions
     private DateTime? HoveredDay;
 
+    /// Empty list placeholder for days with no entries
     private static readonly List<JournalEntry> EmptyEntries = new();
 
+    /// Initializes the calendar component and loads initial data
     protected override async Task OnInitializedAsync()
     {
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
@@ -103,40 +132,49 @@
         await LoadMonthAsync();
     }
 
+    /// Opens the new entry page for a specific date
+    /// <param name="date">Date to create entry for</param>
     private void OpenDay(DateTime date)
     {
         var iso = date.ToString("yyyy-MM-dd");
         Nav.NavigateTo($"/new-entry?date={iso}");
     }
 
+    /// Opens an existing journal entry for editing
+    /// <param name="entryId">Entry ID to open</param>
     private void OpenEntry(int entryId)
     {
         Nav.NavigateTo($"/new-entry/{entryId}");
     }
 
+    /// Navigates to the previous month
     private async Task PrevMonth()
     {
         CurrentMonth = CurrentMonth.AddMonths(-1);
         await LoadMonthAsync();
     }
 
+    /// Navigates to the next month
     private async Task NextMonth()
     {
         CurrentMonth = CurrentMonth.AddMonths(1);
         await LoadMonthAsync();
     }
 
+    /// Navigates to the current month
     private async Task GoToday()
     {
         CurrentMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
         await LoadMonthAsync();
     }
 
+    /// Creates a new entry for today's date
     private void CreateToday()
     {
         OpenDay(DateTime.Today);
     }
 
+    /// Loads calendar cells and entries for the current month
     private async Task LoadMonthAsync()
     {
         BuildCellsMondayStart();
@@ -144,14 +182,14 @@
         StateHasChanged();
     }
 
-    // Month grid with Monday as first day (like your screenshot)
+    /// Builds calendar cells with Monday as the first day of the week
     private void BuildCellsMondayStart()
     {
         Cells.Clear();
 
-        var first = CurrentMonth.Date;                 // first day of month
-        int offset = ((int)first.DayOfWeek + 6) % 7;   // convert Sunday(0) -> 6, Monday(1)->0 ...
-        var start = first.AddDays(-offset);            // start from Monday
+        var first = CurrentMonth.Date;
+        int offset = ((int)first.DayOfWeek + 6) % 7;
+        var start = first.AddDays(-offset);
 
         for (int i = 0; i < 42; i++)
         {
@@ -160,6 +198,7 @@
         }
     }
 
+    /// Loads journal entries for the current month from the database
     private async Task LoadEntriesForMonthAsync()
     {
         EntriesByDay.Clear();
@@ -168,7 +207,6 @@
         var start = CurrentMonth.Date;
         var end = CurrentMonth.AddMonths(1).Date;
 
-        // Load entries in this month (date-only logic)
         var rows = await DB.JournalEntries
             .Where(e => e.UserId == userId && e.EntryDate >= start && e.EntryDate < end)
             .OrderBy(e => e.EntryDate)
@@ -187,6 +225,10 @@
         }
     }
 
+    /// Trims a string to a specified length with ellipsis
+    /// <param name="s">String to trim</param>
+    /// <param name="len">Maximum length</param>
+    /// <returns>Trimmed string with ellipsis if needed</returns>
     private static string TrimTo(string? s, int len)
     {
         if (string.IsNullOrWhiteSpace(s)) return "(No title)";
@@ -194,11 +236,17 @@
         return s.Length <= len ? s : s.Substring(0, len - 1) + "…";
     }
 
+    /// Formats the mood string for display
+    /// <param name="mood">Mood string</param>
+    /// <returns>Formatted mood string</returns>
     private static string FormatMood(string? mood)
     {
         if (string.IsNullOrWhiteSpace(mood)) return "Mood: Neutral";
         return $"Mood: {mood}";
     }
 
+    /// Represents a calendar cell with date and month information
+    /// <param name="Date">Cell date</param>
+    /// <param name="InCurrentMonth">Whether the date is in the current month</param>
     private record CalendarCell(DateTime Date, bool InCurrentMonth);
 }

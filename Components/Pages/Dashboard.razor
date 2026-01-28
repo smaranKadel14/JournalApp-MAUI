@@ -1,14 +1,19 @@
-﻿@page "/dashboard"
-
-@* Dashboard:
-   - Loads current user's entries
-   - Shows stats + recent entries
-   - Button changes: Add Today Entry -> Edit Today Entry if today's entry exists
-   - Uses <Analytics /> component below stats *@
+﻿@*
+    Dashboard Page - Main User Dashboard Component
+    ==============================================
+    Purpose: Central hub displaying user statistics and recent journal activity
+    
+    Features:
+    - User statistics summary (mood, streaks, entries)
+    - Recent journal entries display
+    - Quick access to create/edit today's entry
+    - Responsive grid layout with analytics cards
+*@
+@page "/dashboard"
 
 @using Microsoft.EntityFrameworkCore
 @using JournalApp.Models
-@using JournalApp.Components.Pages   @* ✅ so <Analytics /> is recognized *@
+@using JournalApp.Components.Pages
 
 @inject NavigationManager Nav
 @inject JournalApp.Services.UserService UserSession
@@ -16,7 +21,6 @@
 
 <div class="dashboard-wrapper">
 
-    <!-- Header -->
     <header class="dash-header">
         <div class="dash-heading">
             <h1 class="dash-h1">Dashboard</h1>
@@ -82,10 +86,9 @@
         </div>
     </section>
 
-    @* ✅ Analytics section *@
     <Analytics />
 
-    <!-- Recent Entries -->
+    <!-- Recent Entries Section -->
     <section class="recent-entries">
         <div class="section-header">
             <h2 class="section-title">Recent Entries</h2>
@@ -127,28 +130,51 @@
 </div>
 
 @code {
-    // Tracks loading state so UI can show "Loading..."
+    /// <summary>
+    /// Loading state for the dashboard UI
+    /// </summary>
     private bool IsLoading { get; set; } = true;
 
-    // Holds the entry Id for today's entry (if it exists)
+    /// <summary>
+    /// Entry ID for today's journal entry if it exists
+    /// </summary>
     private int? TodayEntryId { get; set; } = null;
 
-    // Dashboard data
+    /// <summary>
+    /// List of recent journal entries for display
+    /// </summary>
     private List<JournalEntry> RecentEntries { get; set; } = new();
+    
+    /// <summary>
+    /// Current consecutive day streak
+    /// </summary>
     private int CurrentStreak { get; set; } = 0;
+    
+    /// <summary>
+    /// Number of entries created this week
+    /// </summary>
     private int EntriesThisWeek { get; set; } = 0;
+    
+    /// <summary>
+    /// Most frequently selected mood
+    /// </summary>
     private string MostFrequentMood { get; set; } = "—";
 
-    // Add this property to provide a value for LongestStreak
-    // Replace the value assignment with your actual logic as needed
+    /// <summary>
+    /// Longest consecutive day streak achieved
+    /// </summary>
     private int LongestStreak { get; set; } = 0;
 
-    // Add this property to provide the value for TotalEntries
+    /// <summary>
+    /// Total number of journal entries for the user
+    /// </summary>
     private int TotalEntries { get; set; }
 
+    /// <summary>
+    /// Initializes the dashboard component and loads user data
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        // If user is not logged in, send them to login page
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
         {
             Nav.NavigateTo("/login");
@@ -158,6 +184,9 @@
         await LoadDashboardAsync();
     }
 
+    /// <summary>
+    /// Loads all dashboard data including entries, statistics, and user information
+    /// </summary>
     private async Task LoadDashboardAsync()
     {
         IsLoading = true;
@@ -167,38 +196,31 @@
             var userId = UserSession.CurrentUserId!.Value;
             var today = DateTime.Today;
 
-            // Load recent entries for this user (latest first)
             RecentEntries = await DB.JournalEntries
                 .Where(e => e.UserId == userId)
                 .OrderByDescending(e => e.EntryDate)
                 .Take(10)
                 .ToListAsync();
 
-            // Find today's entry Id (if it exists)
             TodayEntryId = await DB.JournalEntries
                 .Where(e => e.UserId == userId && e.EntryDate == today)
                 .Select(e => (int?)e.Id)
                 .FirstOrDefaultAsync();
 
-            // Entries this week (last 7 days including today)
             var weekStart = today.AddDays(-6);
             EntriesThisWeek = await DB.JournalEntries
                 .CountAsync(e => e.UserId == userId && e.EntryDate >= weekStart && e.EntryDate <= today);
 
-            // Most frequent mood (based on Mood field)
             MostFrequentMood = RecentEntries
                 .GroupBy(e => e.Mood)
                 .OrderByDescending(g => g.Count())
                 .Select(g => g.Key)
                 .FirstOrDefault() ?? "—";
 
-            // Current streak (count continuous days ending today)
             CurrentStreak = await CalculateCurrentStreakAsync(userId);
 
-            // Calculate longest streak
             LongestStreak = await CalculateLongestStreakAsync(userId);
 
-            // Get total entries count
             TotalEntries = await DB.JournalEntries
                 .CountAsync(e => e.UserId == userId);
         }
@@ -208,6 +230,9 @@
         }
     }
 
+    /// <summary>
+    /// Navigates to today's entry or creates a new one if it doesn't exist
+    /// </summary>
     private void GoToTodayEntry()
     {
         if (TodayEntryId.HasValue)
@@ -219,6 +244,11 @@
         Nav.NavigateTo("/new-entry");
     }
 
+    /// <summary>
+    /// Calculates the current consecutive day streak ending today
+    /// </summary>
+    /// <param name="userId">User ID to calculate streak for</param>
+    /// <returns>Number of consecutive days with entries ending today</returns>
     private async Task<int> CalculateCurrentStreakAsync(int userId)
     {
         var today = DateTime.Today;
@@ -246,6 +276,11 @@
         return streak;
     }
 
+    /// <summary>
+    /// Calculates the longest consecutive day streak achieved by the user
+    /// </summary>
+    /// <param name="userId">User ID to calculate streak for</param>
+    /// <returns>Longest number of consecutive days with entries</returns>
     private async Task<int> CalculateLongestStreakAsync(int userId)
     {
         var allDates = await DB.JournalEntries
@@ -284,6 +319,11 @@
         return longestStreak;
     }
 
+    /// <summary>
+    /// Creates a text snippet from entry content for preview display
+    /// </summary>
+    /// <param name="content">Full entry content</param>
+    /// <returns>Truncated content snippet (max 60 characters)</returns>
     private string GetSnippet(string content)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -293,6 +333,11 @@
         return content.Length > 60 ? content.Substring(0, 60) + "..." : content;
     }
 
+    /// <summary>
+    /// Maps mood string to CSS class for styling
+    /// </summary>
+    /// <param name="mood">Mood string (Positive, Negative, or Neutral)</param>
+    /// <returns>CSS class name for mood styling</returns>
     private string MoodClass(string mood)
     {
         return mood switch

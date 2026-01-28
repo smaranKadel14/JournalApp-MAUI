@@ -1,11 +1,7 @@
-﻿/* 
-    BEAUTIFUL LANDING PAGE STYLES
-    - Modern, attractive design for first-time users
-    - Hero section with large SVG illustration
-    - Full-coverage colorful background
-    - Feature cards showcasing app capabilities
-    - Responsive design with smooth transitions
-*/
+﻿/* ========================================================================
+   HOME PAGE STYLES
+   Landing page design with hero section and feature showcase
+   ======================================================================== */
 
 .landing-container {
     min-height: 100vh;
@@ -57,13 +53,11 @@
     height: 95%;
     max-height: 750px;
     background: 
-        /* Large colorful circles */
         radial-gradient(circle at 15% 20%, rgba(230, 107, 122, 0.2) 0%, transparent 40%),
         radial-gradient(circle at 85% 30%, rgba(118, 75, 162, 0.2) 0%, transparent 40%),
         radial-gradient(circle at 75% 80%, rgba(255, 215, 0, 0.15) 0%, transparent 35%),
         radial-gradient(circle at 25% 70%, rgba(135, 206, 235, 0.18) 0%, transparent 35%),
         radial-gradient(circle at 50% 50%, rgba(152, 251, 152, 0.12) 0%, transparent 45%),
-        /* Solid base gradient */
         linear-gradient(135deg, #ffffff 0%, #f8f9fa 40%, #e9ecef 100%);
     border-radius: 30px;
     box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
@@ -282,7 +276,7 @@
     margin-bottom: 80px;
 }
 
-/* For 6 features, create 2 rows of 3 on larger screens */
+/* Large screens - 3 columns for features */
 @media (min-width: 1200px) {
     .features-grid {
         grid-template-columns: repeat(3, 1fr);

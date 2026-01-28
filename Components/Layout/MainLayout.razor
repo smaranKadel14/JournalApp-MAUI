@@ -1,22 +1,36 @@
-﻿@inherits LayoutComponentBase
+﻿@*
+    Main Layout Component - Application Layout Structure
+    ================================================
+    Purpose: Provides the main layout structure for the entire application
+    
+    Layout Structure:
+    - Sidebar navigation (shown only when logged in)
+    - Main content area for page content
+    - Theme-aware styling integration
+    - Responsive design considerations
+*@
+@inherits LayoutComponentBase
 @inject JournalApp.Services.ThemeService Theme
 @inject JournalApp.Services.UserService UserSession
 @inject NavigationManager Nav
 
 <div class="app-root @Theme.CssClass">
     <div class="page">
-        @* Hide sidebar completely for non-authenticated users and auth pages *@
+        <!-- Sidebar Navigation (only shown when logged in) -->
         @if (UserSession.IsLoggedIn && !Nav.Uri.Contains("/login") && !Nav.Uri.Contains("/signup"))
         {
             <div class="sidebar">
+                <!-- App Branding -->
                 <div class="navbar-brand">
                     <img src="/icons/journal.svg" alt="Journal Logo" class="navbar-logo" />
                     <span class="navbar-title">Journal</span>
                 </div>
+                <!-- Navigation Menu -->
                 <NavMenu />
             </div>
         }
 
+        <!-- Main Content Area -->
         <main>
             <article class="content px-4">
                 @Body
@@ -26,16 +40,19 @@
 </div>
 
 @code {
+    /// Initializes the layout component and subscribes to theme changes
     protected override void OnInitialized()
     {
         Theme.OnChange += OnThemeChanged;
     }
 
+    /// Handles theme change events and updates the UI
     private void OnThemeChanged()
     {
         InvokeAsync(StateHasChanged);
     }
 
+    /// Cleanup: Unsubscribes from theme change events
     public void Dispose()
     {
         Theme.OnChange -= OnThemeChanged;

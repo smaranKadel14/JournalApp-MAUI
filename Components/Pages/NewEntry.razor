@@ -1,4 +1,16 @@
-﻿@page "/new-entry"
+﻿@*
+    New Entry Page - Journal Entry Creation/Editing Component
+    ====================================================
+    Purpose: Create new journal entries or edit existing ones
+    
+    Features:
+    - Rich text editor for content creation
+    - Mood selection (primary and secondary moods)
+    - Tag management system
+    - Entry metadata (title, date, category)
+    - Delete functionality for existing entries
+*@
+@page "/new-entry"
 @page "/new-entry/{EntryId:int}"
 
 @using System.Linq
@@ -16,11 +28,13 @@
 
 <div class="entry-container">
     <div class="entry-card">
+        <!-- Entry Header -->
         <div class="header">
             <button type="button" class="back-link" @onclick="GoBack">← Back</button>
 
             <h1>@(IsEditMode ? "Edit Entry" : "New Entry")</h1>
 
+            <!-- Header Actions -->
             <div class="header-actions">
                 @if (IsEditMode)
                 {
@@ -41,6 +55,7 @@
             </div>
         </div>
 
+        <!-- Info Banner -->
         @if (!string.IsNullOrWhiteSpace(InfoMessage))
         {
             <div class="info-banner">
@@ -52,6 +67,7 @@
             </div>
         }
 
+        <!-- Entry Metadata -->
         <div class="meta-section">
             <div class="section-subtitle">Entry Information</div>
             <div class="meta-row">
@@ -67,7 +83,7 @@
             </div>
         </div>
 
-        <!-- Entry Title -->
+        <!-- Entry Title Section -->
         <div class="title-section">
             <div class="section-subtitle">Entry Title</div>
             <label class="sr-only">Title</label>
@@ -106,6 +122,7 @@
             </div>
         </div>
 
+        <!-- Mood Selection Component -->
         <div class="component-section">
             <div class="section-title">Mood</div>
             <MoodPicker MoodGroups="MoodGroups"
@@ -114,12 +131,14 @@
                         @bind-SecondaryMoods="SecondaryMoods" />
         </div>
 
+        <!-- Tags Selection Component -->
         <div class="component-section">
             <div class="section-title">Tags</div>
             <TagPicker PrebuiltTags="PrebuiltTags"
                        @bind-SelectedTags="SelectedTags" />
         </div>
 
+        <!-- Content Editor Component -->
         <div class="content-section">
             <div class="section-subtitle">Entry Content</div>
             <div class="field">
@@ -127,6 +146,7 @@
             </div>
         </div>
 
+        <!-- Error Message Display -->
         @if (!string.IsNullOrWhiteSpace(ErrorMessage))
         {
             <div class="error-box">@ErrorMessage</div>
@@ -159,22 +179,37 @@
 </div>
 
 @code {
+    /// Entry ID parameter for edit mode
     [Parameter] public int? EntryId { get; set; }
 
+    /// Indicates whether the component is in edit mode
     private bool IsEditMode => CurrentEntryDbId.HasValue;
+    
+    /// Database ID of the current entry (if in edit mode)
     private int? CurrentEntryDbId { get; set; } = null;
 
+    /// Entry title
     private string Title { get; set; } = "";
+    
+    /// Entry date
     private DateTime EntryDate { get; set; } = DateTime.Today;
-    private string Category { get; set; } = "Personal"; // UI-only (for now)
+    
+    /// Entry category
+    private string Category { get; set; } = "Personal";
 
+    /// Entry content in HTML format
     private string Content { get; set; } = "";
 
+    /// Entry creation timestamp
     private DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    /// Entry last updated timestamp
     private DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    /// Available mood groups for selection
     private readonly List<string> MoodGroups = new() { "Positive", "Neutral", "Negative" };
 
+    /// Mapping of mood groups to specific moods
     private readonly Dictionary<string, List<string>> MoodMap = new()
     {
         ["Positive"] = new() { "Happy", "Excited", "Relaxed", "Grateful", "Confident" },
@@ -182,28 +217,45 @@
         ["Negative"] = new() { "Sad", "Angry", "Stressed", "Lonely", "Anxious" }
     };
 
+    /// Primary mood group selected
     private string PrimaryMoodGroup { get; set; } = "Neutral";
+    
+    /// List of secondary moods selected
     private List<string> SecondaryMoods { get; set; } = new();
 
+    /// Available categories for selection
     private readonly List<string> Categories = new()
     {
         "Personal", "Work", "Studies", "Family", "Friends", "Health", "Self-care", "Travel", "Finance"
     };
 
+    /// Prebuilt tags for selection
     private readonly List<string> PrebuiltTags = new()
     {
         "Work","Career","Studies","Family","Friends","Relationships","Health","Fitness","Personal Growth","Self-care",
         "Hobbies","Travel","Nature","Finance","Spirituality","Birthday","Holiday","Vacation","Celebration","Exercise",
-        "Reading","Writing","Cooking","Meditation","Yoga","Music","Shopping","Parenting","Projects","Planning","Reflection"
+        "Mental Health","Wellness","Goals","Achievements","Challenges","Learning","Books","Movies","Music","Art",
+        "Food","Cooking","Shopping","Technology","Social Media","News","Politics","Weather","Dreams","Memories"
     };
 
+    /// Tags selected for the entry
     private List<string> SelectedTags { get; set; } = new();
 
+    /// Indicates if the entry is currently being saved
     private bool IsSaving { get; set; } = false;
+    
+    /// Error message displayed to the user
     private string ErrorMessage { get; set; } = "";
+    
+    /// Information message displayed to the user
     private string InfoMessage { get; set; } = "";
+    
+    /// Controls the visibility of the delete confirmation modal
     private bool ShowDeleteModal { get; set; } = false;
 
+    /// Strips HTML tags from a string
+    /// <param name="html">HTML string to strip</param>
+    /// <returns>Plain text string</returns>
     private string StripHtml(string html)
     {
         if (string.IsNullOrWhiteSpace(html)) return "";
@@ -211,12 +263,15 @@
         return System.Net.WebUtility.HtmlDecode(noTags).Trim();
     }
 
+    /// Updates the last modified timestamp
     private void TouchUpdated()
     {
         UpdatedAt = DateTime.UtcNow;
     }
 
-    // ✅ helper to load tags/moods from CSV stored in DB
+    /// Parses CSV string into a list of strings
+    /// <param name="csv">CSV string to parse</param>
+    /// <returns>List of individual items</returns>
     private static List<string> SplitCsv(string? csv)
     {
         if (string.IsNullOrWhiteSpace(csv)) return new();
@@ -227,6 +282,7 @@
                   .ToList();
     }
 
+    /// Initializes the component and loads entry data
     protected override async Task OnInitializedAsync()
     {
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
@@ -244,29 +300,36 @@
         await LoadEntryForDateAsync();
     }
 
+    /// Navigates back to the dashboard
     private void GoBack() => Nav.NavigateTo("/dashboard");
 
+    /// Shows the delete confirmation modal
     private void ShowDeleteConfirmation()
     {
         ShowDeleteModal = true;
     }
 
+    /// Hides the delete confirmation modal
     private void HideDeleteConfirmation()
     {
         ShowDeleteModal = false;
     }
 
+    /// Confirms and executes the entry deletion
     private async Task ConfirmDeleteEntry()
     {
         await DeleteEntry();
     }
 
+    /// Handles entry date change and reloads entry data
+    /// <param name="newDate">New entry date</param>
     private async Task OnEntryDateChanged(DateTime newDate)
     {
         EntryDate = newDate.Date;
         await LoadEntryForDateAsync();
     }
 
+    /// Loads entry data for the current entry date
     private async Task LoadEntryForDateAsync()
     {
         ErrorMessage = "";
@@ -301,7 +364,6 @@
         if (!MoodMap.ContainsKey(PrimaryMoodGroup))
             PrimaryMoodGroup = "Neutral";
 
-        // ✅ restore lists from DB (requires properties in JournalEntry model)
         SecondaryMoods = SplitCsv(existing.SecondaryMoodsCsv);
         SelectedTags = SplitCsv(existing.TagsCsv);
 
@@ -312,6 +374,8 @@
         InfoMessage = "An entry already exists for this date. Saving will update it.";
     }
 
+    /// Loads entry data by database ID
+    /// <param name="id">Entry ID to load</param>
     private async Task LoadEntryByIdAsync(int id)
     {
         ErrorMessage = "";
@@ -346,6 +410,7 @@
         InfoMessage = "Editing an existing entry.";
     }
 
+    /// Saves the current entry (creates new or updates existing)
     private async Task SaveEntry()
     {
         ErrorMessage = "";
@@ -454,6 +519,7 @@
         }
     }
 
+    /// Deletes the current entry from the database
     private async Task DeleteEntry()
     {
         ErrorMessage = "";

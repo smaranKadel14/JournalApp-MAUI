@@ -1,21 +1,26 @@
-﻿@using JournalApp.Services
+﻿@*
+    Analytics Page - Comprehensive Data Visualization and Insights
+    ==========================================================
+    Purpose: Display detailed analytics and insights about user's journaling patterns
+    
+    Features:
+    - Mood distribution analysis with pie and bar charts
+    - Writing streak tracking and missed days identification
+    - Tag usage statistics and frequency analysis
+    - Word count trends over time with line graphs
+*@
+@using JournalApp.Services
 @using Microsoft.AspNetCore.Components.Forms
 
 @inject AnalyticsService AnalyticsService
 @inject JournalApp.Services.UserService UserSession
 
-@*
-   Analytics Component (Date-range filterable)
-   - Mood Distribution (Pie + bars)
-   - Most Frequent Mood
-   - Daily Streak + Longest Streak
-   - Missed Days list
-   - Most Used Tags (bars)
-   - Tag Breakdown (% of entries per tag-category)
-   - Word Count Trend (avg words per entry per day)
-*@
-
+<!-- Analytics Dashboard Component -->
+<!-- This component provides comprehensive insights into user's journaling patterns -->
+<!-- Features: mood analysis, writing trends, tag usage, missed days tracking -->
 <section class="analytics-shell">
+    <!-- Analytics Header Section -->
+    <!-- Displays the main title and current date range being analyzed -->
     <div class="analytics-header">
         <div class="analytics-title">
             <h2 class="analytics-h">Analytics & Insights</h2>
@@ -24,13 +29,17 @@
             </p>
         </div>
 
+        <!-- Current Date Range Display -->
+        <!-- Shows the selected date range for analysis -->
         <div class="analytics-range">
             <span class="analytics-badge">@($"{FromDate:MMM dd} → {ToDate:MMM dd}")</span>
         </div>
     </div>
 
-    <!-- Date range controls -->
+    <!-- Date Range Filter Controls -->
+    <!-- Allows users to select the date range for analytics calculation -->
     <div class="analytics-controls">
+        <!-- Start Date Input -->
         <div class="control-field">
             <div class="control-label">From</div>
             <div class="control-input">
@@ -38,6 +47,7 @@
             </div>
         </div>
 
+        <!-- End Date Input -->
         <div class="control-field">
             <div class="control-label">To</div>
             <div class="control-input">
@@ -45,6 +55,8 @@
             </div>
         </div>
 
+        <!-- Refresh Button -->
+        <!-- Triggers recalculation of analytics data for selected date range -->
         <div class="control-actions">
             <button type="button" class="btn-pink" @onclick="LoadAnalytics" disabled="@IsLoading">
                 <span class="btn-ico" aria-hidden="true">↻</span>
@@ -53,15 +65,21 @@
         </div>
     </div>
 
+    <!-- Error Handling -->
+    <!-- Displays any errors that occur during analytics calculation -->
     @if (!string.IsNullOrWhiteSpace(Error))
     {
         <div class="error-box analytics-msg">@Error</div>
     }
 
+    <!-- Analytics Results Display -->
+    <!-- Only shows when analytics data has been successfully loaded -->
     @if (Result is not null)
     {
-        <!-- Mood Distribution + Missed Days -->
+        <!-- Two-column layout for analytics cards -->
         <div class="grid-2">
+            <!-- Mood Distribution Card -->
+            <!-- Shows pie chart and bar chart of mood percentages -->
             <div class="analytics-card">
                 <div class="card-head">
                     <div>
@@ -70,8 +88,10 @@
                     </div>
                 </div>
 
+                <!-- Mood Visualization Container -->
                 <div class="mood-wrap">
-                    <!-- Pie chart -->
+                    <!-- Pie Chart for Mood Distribution -->
+                    <!-- Uses SVG to create a circular chart showing mood percentages -->
                     <div class="mood-pie">
                         @if (Result.TotalEntries == 0)
                         {
@@ -79,38 +99,41 @@
                         }
                         else
                         {
+                            <!-- SVG Pie Chart Implementation -->
+                            <!-- Uses stroke-dasharray to create pie slices -->
+                            <!-- Each mood category gets its own colored arc -->
                             <svg viewBox="0 0 42 42" width="170" height="170" role="img" aria-label="Mood pie chart">
                                 @{
                                     var p = GetPct("Positive");
                                     var n = GetPct("Neutral");
                                     var g = GetPct("Negative");
-                                    var offset = 25; // start position
+                                    var offset = 25; // start position for first slice
                                 }
 
-                                <!-- Background ring -->
-                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                <!-- Background circle (gray) -->
+                                <circle cx="21" cy="21" r="15.15" fill="transparent"
                                         stroke="var(--surface-2)" stroke-width="8" />
 
-                                <!-- Positive -->
-                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                <!-- Positive mood slice (accent color) -->
+                                <circle cx="21" cy="21" r="15.15" fill="transparent"
                                         stroke="var(--accent)" stroke-width="8"
                                         stroke-dasharray="@($"{p} {100 - p}")"
                                         stroke-dashoffset="@offset" />
 
-                                <!-- Neutral -->
                                 @{
-                                    offset -= p;
+                                    offset -= p; // Adjust offset for next slice
                                 }
-                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                <!-- Neutral mood slice (lighter accent) -->
+                                <circle cx="21" cy="21" r="15.15" fill="transparent"
                                         stroke="rgba(225,107,122,0.55)" stroke-width="8"
                                         stroke-dasharray="@($"{n} {100 - n}")"
                                         stroke-dashoffset="@offset" />
 
-                                <!-- Negative -->
                                 @{
-                                    offset -= n;
+                                    offset -= n; // Adjust offset for next slice
                                 }
-                                <circle cx="21" cy="21" r="15.9155" fill="transparent"
+                                <!-- Negative mood slice (lightest accent) -->
+                                <circle cx="21" cy="21" r="15.15" fill="transparent"
                                         stroke="rgba(225,107,122,0.28)" stroke-width="8"
                                         stroke-dasharray="@($"{g} {100 - g}")"
                                         stroke-dashoffset="@offset" />
@@ -118,7 +141,24 @@
                         }
                     </div>
 
-                    <!-- Bars -->
+                    <!-- Color Legend for Pie Chart -->
+                    <div class="mood-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--accent);"></div>
+                            <span class="legend-text">Positive</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(225,107,122,0.55);"></div>
+                            <span class="legend-text">Neutral</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(225,107,122,0.28);"></div>
+                            <span class="legend-text">Negative</span>
+                        </div>
+                    </div>
+
+                    <!-- Mood Bar Chart -->
+                    <!-- Complementary visualization showing mood percentages as horizontal bars -->
                     <div class="mood-bars">
                         @MoodRow("Positive", "var(--accent)")
                         @MoodRow("Neutral", "rgba(225,107,122,0.55)")
@@ -127,6 +167,8 @@
                 </div>
             </div>
 
+            <!-- Missed Days Analysis Card -->
+            <!-- Shows dates where user didn't write any entries -->
             <div class="analytics-card">
                 <div class="card-head">
                     <div>
@@ -135,12 +177,15 @@
                     </div>
                 </div>
 
+                <!-- Missed Days Display -->
                 @if (Result.MissedDays.Count == 0)
                 {
                     <div class="card-desc" style="margin-top:12px;">No missed days 🎉</div>
                 }
                 else
                 {
+                    <!-- Missed Days List -->
+                    <!-- Shows up to 24 missed days with option to see more -->
                     <div class="missed-wrap">
                         @foreach (var d in Result.MissedDays.Take(24))
                         {
@@ -156,8 +201,10 @@
             </div>
         </div>
 
-        <!-- Tags -->
+        <!-- Second Row of Analytics Cards -->
         <div class="grid-2">
+            <!-- Most Used Tags Card -->
+            <!-- Displays the most frequently used tags with usage counts -->
             <div class="analytics-card">
                 <div class="card-head">
                     <div>
@@ -166,12 +213,15 @@
                     </div>
                 </div>
 
+                <!-- Tags Display -->
                 @if (Result.TopTags.Count == 0)
                 {
                     <div class="card-desc" style="margin-top:12px;">No tags found.</div>
                 }
                 else
                 {
+                    <!-- Tag Usage Visualization -->
+                    <!-- Shows horizontal bars representing tag usage frequency -->
                     var max = Result.TopTags.Max(x => x.Count);
                     <div class="bar-list">
                         @foreach (var t in Result.TopTags)
@@ -181,7 +231,7 @@
                             <div class="bar-item">
                                 <div class="bar-top">
                                     <span class="bar-name">@t.Name</span>
-                                    <span class="bar-count">@t.Count</span>
+                                    <span class="tag-count">@t.Count</span>
                                 </div>
                                 <div class="bar-track">
                                     <div class="bar-fill" style="width:@pct%; opacity:.85;"></div>
@@ -192,33 +242,38 @@
                 }
             </div>
 
+            <!-- Tag Breakdown Card -->
+            <!-- Shows percentage of entries that contain each tag -->
             <div class="analytics-card">
                 <div class="card-head">
                     <div>
                         <div class="card-title">Tag Breakdown</div>
-                        <div class="card-desc">
-                            % of entries per tag-category (Work, Health, Travel, etc.).
-                            <span class="muted-note">One entry can count in multiple categories.</span>
-                        </div>
+                        <div class="card-desc">Percentage of entries per tag</div>
                     </div>
                 </div>
 
+                <!-- Tag Percentage Display -->
                 @if (Result.TagBreakdown.Count == 0)
                 {
-                    <div class="card-desc" style="margin-top:12px;">No tag breakdown available.</div>
+                    <div class="card-desc" style="margin-top:12px;">No tags found.</div>
                 }
                 else
                 {
+                    <!-- Tag Percentage Visualization -->
+                    <!-- Shows horizontal bars representing tag usage percentage -->
+                    var max = Result.TagBreakdown.Max(x => x.Percent);
                     <div class="bar-list">
                         @foreach (var c in Result.TagBreakdown)
                         {
+                            var pct = max == 0 ? 0 : (int)Math.Round(c.Percent * 100.0 / max);
+
                             <div class="bar-item">
                                 <div class="bar-top">
                                     <span class="bar-name">@c.Name</span>
-                                    <span class="bar-count">@c.Percent% (@c.Count)</span>
+                                    <span class="bar-count">@c.Percent%</span>
                                 </div>
                                 <div class="bar-track">
-                                    <div class="bar-fill" style="width:@c.Percent%; opacity:.55;"></div>
+                                    <div class="bar-fill" style="width:@pct%; opacity:.55;"></div>
                                 </div>
                             </div>
                         }
@@ -227,7 +282,8 @@
             </div>
         </div>
 
-        <!-- Word Count Trend -->
+        <!-- Word Count Trends Card -->
+        <!-- Shows average word count over time with line graph -->
         <div class="analytics-card">
             <div class="card-head">
                 <div>
@@ -236,12 +292,15 @@
                 </div>
             </div>
 
+            <!-- Trend Visualization -->
             @if (Result.AvgWordsByDay.Count == 0)
             {
                 <div class="card-desc" style="margin-top:12px;">No data to plot.</div>
             }
             else
             {
+                <!-- SVG Line Chart Implementation -->
+                <!-- Creates a line graph showing word count trends over time -->
                 <div class="trend-box">
                     <svg viewBox="0 0 700 200" width="100%" height="200" role="img" aria-label="Average word trend">
                         @{
@@ -251,6 +310,7 @@
                     </svg>
                 </div>
 
+                <!-- Trend Statistics -->
                 <div class="card-desc trend-note">
                     Showing @Result.AvgWordsByDay.Count day(s) with entries.
                 </div>
@@ -260,118 +320,180 @@
 </section>
 
 @code {
+    // ==================== COMPONENT PROPERTIES ====================
+    
+    /// Analytics date range start (default: 30 days ago)
+    /// Used to filter journal entries for analysis
     private DateTime FromDate { get; set; } = DateTime.Today.AddDays(-30);
+    
+    /// Analytics date range end (default: today)
+    /// Used to filter journal entries for analysis
     private DateTime ToDate { get; set; } = DateTime.Today;
 
+    /// Loading state indicator
+    /// Prevents multiple simultaneous requests and shows loading UI
     private bool IsLoading { get; set; } = false;
+    
+    /// Error message for user feedback
+    /// Displays validation errors or service failures
     private string Error { get; set; } = "";
 
+    /// Analytics calculation results
+    /// Contains all computed insights from AnalyticsService
     private AnalyticsResult? Result { get; set; }
 
+    // ==================== LIFECYCLE METHODS ====================
+    
+    /// Component initialization
+    /// Automatically loads analytics when component first renders
+    /// Checks user authentication before proceeding
     protected override async Task OnInitializedAsync()
     {
+        // Security check: only load data for authenticated users
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
             return;
 
+        // Load initial analytics data
         await LoadAnalytics();
     }
 
+    // ==================== DATA LOADING METHODS ====================
+    
+    /// Loads analytics data for the current date range
+    /// Main method that orchestrates the entire analytics loading process
+    /// Includes validation, error handling, and loading state management
     private async Task LoadAnalytics()
     {
+        // Reset state for fresh load
         Error = "";
         Result = null;
 
+        // Authentication validation
         if (!UserSession.IsLoggedIn || UserSession.CurrentUserId is null)
         {
             Error = "Please log in to view analytics.";
             return;
         }
 
+        // Date range validation
         if (ToDate.Date < FromDate.Date)
         {
             Error = "Invalid range: 'To' must be after 'From'.";
             return;
         }
 
+        // Set loading state
         IsLoading = true;
 
         try
         {
+            // Get current user ID for data filtering
             var userId = UserSession.CurrentUserId.Value;
+            
+            // Call analytics service to compute insights
+            // This is where the heavy lifting happens - mood analysis, tag counting, etc.
             Result = await AnalyticsService.GetInsightsAsync(userId, FromDate, ToDate);
         }
         catch (Exception ex)
         {
+            // Handle any errors from the analytics service
             Error = "Analytics failed: " + ex.Message;
         }
         finally
         {
+            // Always clear loading state
             IsLoading = false;
         }
     }
 
-    // ---- Mood helpers ----
+    // ==================== UTILITY METHODS ====================
+    
+    /// Gets the percentage for a specific mood category
+    /// Used by both pie chart and bar chart visualizations
+    /// <param name="mood">Mood name (Positive, Neutral, Negative)</param>
+    /// <returns>Percentage value (0-100), returns 0 if no data available</returns>
     private int GetPct(string mood)
     {
         if (Result is null) return 0;
         return Result.MoodPercentages.TryGetValue(mood, out var p) ? p : 0;
     }
 
+    /// Renders a mood row with percentage bar visualization
+    /// Creates a custom RenderFragment for displaying mood statistics
+    /// Uses dynamic bar width calculation based on percentage
+    /// <param name="mood">Mood name to display</param>
+    /// <param name="color">CSS color for the bar</param>
+    /// <returns>RenderFragment containing the mood row UI</returns>
     private RenderFragment MoodRow(string mood, string color) => builder =>
     {
         if (Result is null) return;
 
+        // Get percentage and count for this mood
         var pct = GetPct(mood);
         var count = Result.MoodCounts.TryGetValue(mood, out var c) ? c : 0;
 
         var seq = 0;
 
+        // Create mood row container
         builder.OpenElement(seq++, "div");
         builder.AddAttribute(seq++, "class", "mood-row");
 
+        // Create top section with mood name and stats
         builder.OpenElement(seq++, "div");
         builder.AddAttribute(seq++, "class", "mood-row-top");
 
+        // Mood name label
         builder.OpenElement(seq++, "span");
         builder.AddAttribute(seq++, "class", "mood-name");
         builder.AddContent(seq++, mood);
         builder.CloseElement();
 
+        // Percentage and count display
         builder.OpenElement(seq++, "span");
         builder.AddAttribute(seq++, "class", "mood-val");
         builder.AddContent(seq++, $"{pct}% ({count})");
         builder.CloseElement();
 
-        builder.CloseElement(); // mood-row-top
+        builder.CloseElement();
 
+        // Create progress bar visualization
         builder.OpenElement(seq++, "div");
         builder.AddAttribute(seq++, "class", "bar-track");
 
+        // Colored fill bar with dynamic width
         builder.OpenElement(seq++, "div");
         builder.AddAttribute(seq++, "class", "bar-fill");
         builder.AddAttribute(seq++, "style", $"width:{pct}%; background:{color};");
         builder.CloseElement();
 
-        builder.CloseElement(); // bar-track
+        builder.CloseElement();
 
-        builder.CloseElement(); // mood-row
+        builder.CloseElement();
     };
 
-    /// <summary>
-    /// Creates the SVG polyline points for the trend chart.
-    /// </summary>
+    /// Creates SVG polyline points for the word count trend chart
+    /// Implements coordinate transformation algorithm for data visualization
+    /// Maps data points to SVG coordinate system with proper scaling
+    /// <param name="data">Dictionary mapping dates to word counts</param>
+    /// <param name="width">Chart width in SVG units</param>
+    /// <param name="height">Chart height in SVG units</param>
+    /// <param name="padding">Chart padding for axis labels</param>
+    /// <returns>SVG points string format: "x1,y1 x2,y2 ..."</returns>
     private static string BuildTrendPoints(SortedDictionary<DateTime, int> data, int width, int height, int padding)
     {
+        // Handle empty data case
         if (data.Count == 0) return "";
 
+        // Find maximum word count for Y-axis scaling
         var values = data.Values.ToList();
         var max = values.Max();
-        if (max <= 0) max = 1;
+        if (max <= 0) max = 1; // Prevent division by zero
 
+        // Calculate available plotting area
         var plotW = width - (padding * 2);
         var plotH = height - (padding * 2);
 
-        // One point case: keep it in the center
+        // Special case: single data point - center it
         if (data.Count == 1)
         {
             var x = padding + plotW / 2;
@@ -379,18 +501,25 @@
             return $"{x},{y}";
         }
 
+        // Generate points for line chart
         var parts = new List<string>(data.Count);
         var i = 0;
 
         foreach (var kv in data)
         {
+            // Calculate X position (time axis)
             var x = padding + (int)Math.Round(plotW * (i / (double)(data.Count - 1)));
-            var normalized = kv.Value / (double)max;                // 0..1
-            var y = padding + (int)Math.Round(plotH * (1 - normalized)); // invert for SVG
+            
+            // Calculate Y position (word count axis)
+            // Invert Y coordinate because SVG Y=0 is at top
+            var normalized = kv.Value / (double)max;
+            var y = padding + (int)Math.Round(plotH * (1 - normalized));
+            
             parts.Add($"{x},{y}");
             i++;
         }
 
+        // Join all points with spaces for SVG polyline
         return string.Join(" ", parts);
     }
 }

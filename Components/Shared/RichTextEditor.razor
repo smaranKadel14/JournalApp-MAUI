@@ -1,29 +1,42 @@
-﻿@using Microsoft.JSInterop
+﻿@*
+    Rich Text Editor Component - Advanced Text Editing Interface
+    ========================================================
+    Purpose: Provides a rich text editing experience for journal entry content
+    
+    Editor Features:
+    - Text formatting (bold, italic, strikethrough)
+    - Heading levels and structure
+    - List creation (bulleted and numbered)
+    - Link insertion and management
+    - Content editing with placeholder support
+*@
+@using Microsoft.JSInterop
 @inject IJSRuntime JS
 
-@* 
-    RichTextEditor Component
-    ------------------------
-*@
-
+<!-- Rich Text Editor Component -->
 <div class="rte-wrap">
+    <!-- Formatting Toolbar -->
     <div class="rte-toolbar" role="toolbar" aria-label="Formatting toolbar">
+        <!-- Text Formatting Buttons -->
         <button type="button" class="rte-btn" title="Bold" @onclick="BoldAsync"><b>B</b></button>
         <button type="button" class="rte-btn" title="Italic" @onclick="ItalicAsync"><i>I</i></button>
         <button type="button" class="rte-btn" title="Strikethrough" @onclick="StrikeAsync"><s>S</s></button>
 
         <span class="rte-sep" aria-hidden="true"></span>
 
+        <!-- Structure Buttons -->
         <button type="button" class="rte-btn" title="Heading" @onclick="H2Async">H</button>
         <button type="button" class="rte-btn" title="Bullet list" @onclick="BulletsAsync">•≡</button>
         <button type="button" class="rte-btn" title="Numbered list" @onclick="NumbersAsync">1≡</button>
 
         <span class="rte-sep" aria-hidden="true"></span>
 
+        <!-- Link Buttons -->
         <button type="button" class="rte-btn" title="Insert link" @onclick="LinkAsync">🔗</button>
         <button type="button" class="rte-btn" title="Remove link" @onclick="UnlinkAsync">⨯</button>
     </div>
 
+    <!-- Editable Content Area -->
     <div id="@EditorId"
          class="rte-editor"
          contenteditable="true"
@@ -33,22 +46,47 @@
 </div>
 
 @code {
-    // two-way binding: parent uses @bind-Html
+    /// <summary>
+    /// HTML content for two-way binding
+    /// </summary>
     [Parameter] public string Html { get; set; } = "";
+    
+    /// <summary>
+    /// Event callback for HTML content changes
+    /// </summary>
     [Parameter] public EventCallback<string> HtmlChanged { get; set; }
 
+    /// <summary>
+    /// Placeholder text for the editor
+    /// </summary>
     [Parameter] public string Placeholder { get; set; } = "Type...";
 
+    /// <summary>
+    /// Unique editor ID for JavaScript interop
+    /// </summary>
     private string EditorId { get; } = $"rte_{Guid.NewGuid():N}";
+    
+    /// <summary>
+    /// Indicates if the editor is ready for JavaScript operations
+    /// </summary>
     private bool _ready = false;
+    
+    /// <summary>
+    /// Flag to apply HTML from parent after render
+    /// </summary>
     private bool _applyFromParent = false;
 
+    /// <summary>
+    /// Handles parameter changes and flags HTML application
+    /// </summary>
     protected override void OnParametersSet()
     {
-        // When parent loads entry and changes Html, we apply it in editor after render.
         _applyFromParent = true;
     }
 
+    /// <summary>
+    /// Initializes the editor after first render
+    /// </summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) _ready = true;
@@ -60,6 +98,9 @@
         }
     }
 
+    /// <summary>
+    /// Handles editor input changes and notifies parent
+    /// </summary>
     private async Task OnEditorInput()
     {
         if (!_ready) return;
@@ -68,18 +109,30 @@
         await HtmlChanged.InvokeAsync(html);
     }
 
+    /// <summary>
+    /// Safely gets HTML content from the editor
+    /// </summary>
+    /// <returns>HTML content or empty string on error</returns>
     private async Task<string> SafeGetHtmlAsync()
     {
         try { return await JS.InvokeAsync<string>("rte.getHtml", EditorId); }
         catch { return Html ?? ""; }
     }
 
+    /// <summary>
+    /// Safely sets HTML content in the editor
+    /// </summary>
+    /// <param name="html">HTML content to set</param>
     private async Task SafeSetHtmlAsync(string html)
     {
         try { await JS.InvokeVoidAsync("rte.setHtml", EditorId, html ?? ""); }
         catch { }
     }
 
+    /// <summary>
+    /// Executes a command on the editor
+    /// </summary>
+    /// <param name="cmd">Command to execute</param>
     private async Task ExecAsync(string cmd)
     {
         if (!_ready) return;
@@ -87,6 +140,10 @@
         catch { }
     }
 
+    /// <summary>
+    /// Formats text with a block element
+    /// </summary>
+    /// <param name="tag">Block element tag name</param>
     private async Task FormatAsync(string tag)
     {
         if (!_ready) return;
@@ -94,6 +151,9 @@
         catch { }
     }
 
+    /// <summary>
+    /// Creates a link with user prompt
+    /// </summary>
     private async Task LinkAsync()
     {
         if (!_ready) return;
@@ -101,11 +161,38 @@
         catch { }
     }
 
+    /// <summary>
+    /// Removes link from selected text
+    /// </summary>
     private async Task UnlinkAsync() => await ExecAsync("unlink");
+    
+    /// <summary>
+    /// Applies bold formatting
+    /// </summary>
     private async Task BoldAsync() => await ExecAsync("bold");
+    
+    /// <summary>
+    /// Applies italic formatting
+    /// </summary>
     private async Task ItalicAsync() => await ExecAsync("italic");
+    
+    /// <summary>
+    /// Applies strikethrough formatting
+    /// </summary>
     private async Task StrikeAsync() => await ExecAsync("strikeThrough");
+    
+    /// <summary>
+    /// Creates unordered list
+    /// </summary>
     private async Task BulletsAsync() => await ExecAsync("insertUnorderedList");
+    
+    /// <summary>
+    /// Creates ordered list
+    /// </summary>
     private async Task NumbersAsync() => await ExecAsync("insertOrderedList");
+    
+    /// <summary>
+    /// Applies heading 2 formatting
+    /// </summary>
     private async Task H2Async() => await FormatAsync("H2");
 }

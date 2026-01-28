@@ -1,43 +1,44 @@
-﻿@page "/login"
-
-@* 
-    LOGIN PAGE (SQLite + EF Core)
-    - Purpose: Authenticate a user using username + password
-    - Storage: Uses EF Core DbContext (AppDbContext) which is configured to use SQLite (journal.db)
-    - If credentials are valid -> redirect to Dashboard
+﻿@*
+    Login Page - User Authentication Component
+    ========================================
+    Purpose: Handles user authentication and login functionality
+    
+    Features:
+    - Username and password input fields with validation
+    - Real-time form validation and error display
+    - Secure password verification using BCrypt hashing
+    - Navigation to signup and home pages
 *@
+@page "/login"
 
-@using JournalApp.Data
 @using Microsoft.EntityFrameworkCore
 @using JournalApp.Services
+@using JournalApp.Data
 @inject UserService UserSession
 @inject AppDbContext DB
 @inject NavigationManager Nav
 @inject PasswordHasherService PasswordHasher
 
-
-
+<!-- Login Page Container -->
 <div class="login-container">
     <div class="login-card">
-        <!-- App branding -->
+        <!-- App Branding -->
         <h1 class="brand-title">Journal</h1>
         <p class="brand-subtitle">Your Personal Space for Thoughts</p>
 
-        <!-- Username input -->
+        <!-- Username Input -->
         <div class="input-group">
             <label>Username</label>
-            @* @bind stores the typed value into the 'username' C# variable *@
             <input type="text" placeholder="Enter your username" @bind="username" />
         </div>
 
-        <!-- Password input -->
+        <!-- Password Input -->
         <div class="input-group">
             <label>Password</label>
-            @* Password type hides input characters *@
             <input type="password" placeholder="Enter your password" @bind="password" />
         </div>
 
-        <!-- Error message area (only shown when errorMessage has content) -->
+        <!-- Error Message Display -->
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <p style="color: #e66b7a; font-size: 0.85rem; margin-top: -10px; margin-bottom: 10px; text-align: left;">
@@ -45,15 +46,14 @@
             </p>
         }
 
-        <!-- Login button triggers HandleLogin() -->
+        <!-- Login Button -->
         <button class="primary-btn" @onclick="HandleLogin">Login</button>
 
-        <!-- Navigate to Register page -->
+        <!-- Footer Links -->
         <p class="footer-text">
             Don't have an account? <a href="" @onclick="GoToRegister">Register here</a>
         </p>
         
-        <!-- Back to Home -->
         <p class="footer-text">
             <a href="" @onclick="GoToHome">← Back to Home</a>
         </p>
@@ -61,26 +61,20 @@
 </div>
 
 @code {
-    // Variables bound to the input fields
+    /// Username input field value
     private string username = "";
+    
+    /// Password input field value
     private string password = "";
-
-    // Shows validation or database errors to the user
+    
+    /// Error message displayed to user on validation or authentication failure
     private string errorMessage = "";
 
-    /// <summary>
-    /// Handles login logic with password verification:
-    /// 1) Validate inputs
-    /// 2) Query SQLite (via EF Core) to find user by username
-    /// 3) Verify hashed password using PasswordHasherService
-    /// 4) If credentials match -> redirect to dashboard
-    /// </summary>
+    /// Handles user login authentication with password verification
     private async Task HandleLogin()
     {
-        // Reset previous errors
         errorMessage = "";
 
-        // 1) Basic input validation
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
             errorMessage = "Please enter both username and password.";
@@ -89,37 +83,33 @@
 
         try
         {
-            // 2) Find user by username
             var user = await DB.Users
                 .FirstOrDefaultAsync(u => u.Username == username);
 
-            // 3) Check if user exists and verify password
             if (user != null && PasswordHasher.VerifyPassword(user.Password, password))
             {
-                // 4) If credentials match, redirect to dashboard page
-                UserSession.SetCurrentUser(user.Id, user.Username); // save session info (id + username)
-                                                                    
+                UserSession.SetCurrentUser(user.Id, user.Username);
                 Nav.NavigateTo("/dashboard");
             }
             else
             {
-                // If no record matches or password is wrong, show error
                 errorMessage = "Invalid username or password.";
             }
         }
         catch (Exception ex)
         {
-            // Any unexpected DB errors or runtime errors are shown here
             errorMessage = "Something went wrong while logging in.";
             Console.WriteLine(ex.Message);
         }
     }
-    
+
+    /// Navigates to the registration page
     private void GoToRegister()
     {
         Nav.NavigateTo("/signup");
     }
     
+    /// Navigates back to the home page
     private void GoToHome()
     {
         Nav.NavigateTo("/");

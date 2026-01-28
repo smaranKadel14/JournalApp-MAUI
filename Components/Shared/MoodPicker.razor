@@ -1,8 +1,16 @@
-﻿@* 
-    MoodPicker Component
-    --------------------
+﻿@*
+    Mood Picker Component - Mood Selection Interface
+    ==============================================
+    Purpose: Allows users to select primary and secondary moods for journal entries
+    
+    Mood Selection System:
+    - Primary mood: Single selection from mood groups
+    - Secondary moods: Multiple selection from individual moods
+    - Organized by mood categories (Positive, Neutral, Negative)
+    - Visual feedback for selected states
 *@
 
+<!-- Primary Mood Selection -->
 <div class="field">
     <label>Primary Mood</label>
 
@@ -18,6 +26,7 @@
     </div>
 </div>
 
+<!-- Secondary Mood Selection -->
 <div class="field">
     <label>Secondary Mood</label>
 
@@ -26,6 +35,7 @@
         <div class="secondary-group">
             <div class="secondary-title">@group</div>
 
+            <!-- Mood Categories for Current Group -->
             <div class="mood-categories">
                 @foreach (var mood in MoodMap[group])
                 {
@@ -43,27 +53,52 @@
 </div>
 
 @code {
-    // Data from parent (NewEntry)
+    /// <summary>
+    /// Available mood groups from parent component
+    /// </summary>
     [Parameter] public List<string> MoodGroups { get; set; } = new();
+    
+    /// <summary>
+    /// Mapping of mood groups to specific moods
+    /// </summary>
     [Parameter] public Dictionary<string, List<string>> MoodMap { get; set; } = new();
 
-    // Two-way binding for PrimaryMoodGroup
+    /// <summary>
+    /// Currently selected primary mood group
+    /// </summary>
     [Parameter] public string PrimaryMoodGroup { get; set; } = "Neutral";
+    
+    /// <summary>
+    /// Event callback for primary mood group changes
+    /// </summary>
     [Parameter] public EventCallback<string> PrimaryMoodGroupChanged { get; set; }
 
-    // Two-way binding for SecondaryMoods
+    /// <summary>
+    /// Currently selected secondary moods
+    /// </summary>
     [Parameter] public List<string> SecondaryMoods { get; set; } = new();
+    
+    /// <summary>
+    /// Event callback for secondary moods changes
+    /// </summary>
     [Parameter] public EventCallback<List<string>> SecondaryMoodsChanged { get; set; }
 
+    /// <summary>
+    /// Sets the primary mood group and notifies parent
+    /// </summary>
+    /// <param name="group">Mood group to select</param>
     private async Task SetPrimaryGroup(string group)
     {
         PrimaryMoodGroup = group;
         await PrimaryMoodGroupChanged.InvokeAsync(group);
     }
 
+    /// <summary>
+    /// Toggles a secondary mood selection (max 2 allowed)
+    /// </summary>
+    /// <param name="mood">Mood to toggle</param>
     private async Task ToggleSecondaryMood(string mood)
     {
-        // Work on a copy so Blazor detects changes correctly
         var list = SecondaryMoods?.ToList() ?? new List<string>();
 
         if (list.Contains(mood))
@@ -72,7 +107,6 @@
         }
         else
         {
-            // Limit to max 2
             if (list.Count >= 2) return;
             list.Add(mood);
         }

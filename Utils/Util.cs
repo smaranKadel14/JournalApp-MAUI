@@ -5,8 +5,8 @@ namespace JournalApp.Utils;
 
 public static class Util
 {
-    // I use this to remove HTML tags so the app can show a clean preview/snippet
-    // instead of displaying raw tags like <h2> or <b>.
+    /// I use this to remove HTML tags so the app can show a clean preview/snippet
+    /// instead of displaying raw tags like <h2> or <b>.
     public static string StripHtml(string html)
     {
         if (string.IsNullOrWhiteSpace(html))
@@ -16,17 +16,27 @@ public static class Util
         return WebUtility.HtmlDecode(noTags).Trim();
     }
 
-    // I use this to safely force DateTime to act like "date-only" for comparisons,
-    // so time portion never causes bugs.
+    /// I use this to safely force DateTime to act like "date-only" for comparisons,
+    /// so time portion never causes bugs.
     public static DateTime DateOnly(DateTime dt) => dt.Date;
 
-    // I use this for entry previews (Dashboard/Entries list)
+    /// I use this for entry previews (Dashboard/Entries list)
     public static string SnippetFromHtml(string html, int maxLen = 90)
     {
         var text = StripHtml(html).Replace("\r", "").Replace("\n", " ").Trim();
         return text.Length > maxLen ? text.Substring(0, maxLen) + "..." : text;
     }
 
-    // I use this to validate rich text input properly (prevents saving "<br>" as content)
+    /// I use this to validate rich text input properly (prevents saving "<br>" as content)
     public static bool HasRealText(string html) => !string.IsNullOrWhiteSpace(StripHtml(html));
+
+    /// Capitalizes the first letter of a string
+    /// Used for displaying theme names and other UI text
+    public static string Cap(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+        
+        return char.ToUpper(text[0]) + text.Substring(1).ToLower();
+    }
 }

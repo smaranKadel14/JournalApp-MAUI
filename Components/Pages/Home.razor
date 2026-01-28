@@ -1,4 +1,15 @@
-﻿@page "/"
+﻿@*
+    Home Page - Landing Page Component
+    ===================================
+    Purpose: Main landing page for the Journal application
+    
+    Features:
+    - Hero section with app introduction and call-to-action buttons
+    - Feature showcase highlighting key app capabilities
+    - Dynamic content based on user authentication status
+    - Responsive design with modern UI elements
+*@
+@page "/"
 @using JournalApp.Services
 @inject UserService UserSession
 @inject NavigationManager Nav
@@ -8,10 +19,12 @@
     <section class="hero-section">
         <div class="hero-background"></div>
         <div class="hero-content">
+            <!-- Hero Text Content -->
             <div class="hero-text">
                 <h1 class="hero-title">Your Personal Journal</h1>
                 <p class="hero-subtitle">Capture your thoughts, track your emotions, and preserve your memories in one beautiful space</p>
                 
+                <!-- Call to Action Buttons -->
                 @if (!UserSession.IsLoggedIn)
                 {
                     <div class="cta-buttons">
@@ -25,6 +38,7 @@
                 }
                 else
                 {
+                    <!-- Welcome Back Message -->
                     <div class="welcome-back">
                         <h2>Welcome back, @UserSession.CurrentUsername!</h2>
                         <button class="btn-primary" @onclick="GoToDashboard">
@@ -34,6 +48,7 @@
                 }
             </div>
             
+            <!-- Hero Visual -->
             <div class="hero-visual">
                 <div class="journal-image-container">
                     <img src="/images/journal.png" alt="Journal App" class="journal-image" />
@@ -43,42 +58,49 @@
         </div>
     </section>
 
+    <!-- Features Section (only shown when not logged in) -->
     @if (!UserSession.IsLoggedIn)
     {
         <section class="features-section">
             <div class="container">
                 <h2 class="section-title">Why Choose Your Journal?</h2>
                 <div class="features-grid">
+                    <!-- Feature Card 1 -->
                     <div class="feature-card">
                         <div class="feature-icon">📝</div>
                         <h3>Write Freely</h3>
                         <p>Express yourself without limits with our rich text editor and intuitive interface</p>
                     </div>
                     
+                    <!-- Feature Card 2 -->
                     <div class="feature-card">
                         <div class="feature-icon">📊</div>
                         <h3>Track Your Mood</h3>
                         <p>Monitor your emotional patterns and gain insights into your mental wellbeing</p>
                     </div>
                     
+                    <!-- Feature Card 3 -->
                     <div class="feature-card">
                         <div class="feature-icon">🏷️</div>
                         <h3>Organize with Tags</h3>
                         <p>Categorize your thoughts and find entries easily with smart tagging system</p>
                     </div>
                     
+                    <!-- Feature Card 4 -->
                     <div class="feature-card">
                         <div class="feature-icon">📅</div>
                         <h3>Calendar View</h3>
                         <p>Navigate through your entries with an intuitive calendar interface and track your writing consistency</p>
                     </div>
                     
+                    <!-- Feature Card 5 -->
                     <div class="feature-card">
                         <div class="feature-icon">🔒</div>
                         <h3>Private & Secure</h3>
                         <p>Your personal thoughts are protected with secure authentication and private storage</p>
                     </div>
                     
+                    <!-- Feature Card 6 -->
                     <div class="feature-card">
                         <div class="feature-icon">📈</div>
                         <h3>Analytics Dashboard</h3>
@@ -86,6 +108,7 @@
                     </div>
                 </div>
                 
+                <!-- Final Call to Action -->
                 <div class="cta-section">
                     <h3>Ready to start your journaling journey?</h3>
                     <button class="btn-primary btn-large" @onclick="GoToSignup">
@@ -96,6 +119,7 @@
         </section>
     }
 
+    <!-- Footer -->
     <footer class="landing-footer">
         <div class="container">
             <p>&copy; 2024 Your Journal. Your personal space for thoughts and memories.</p>
@@ -104,16 +128,19 @@
 </div>
 
 @code {
+    /// Navigates the user to the signup page
     private void GoToSignup()
     {
         Nav.NavigateTo("/signup");
     }
     
+    /// Navigates the user to the login page
     private void GoToLogin()
     {
         Nav.NavigateTo("/login");
     }
     
+    /// Navigates the authenticated user to the dashboard
     private void GoToDashboard()
     {
         Nav.NavigateTo("/dashboard");

@@ -1,12 +1,16 @@
-﻿ @page "/signup"
-
-@*
-    REGISTER PAGE (SQLite + EF Core)
-    - Purpose: Create a new user account
-    - Validation: required fields + password match + duplicate email check
-    - Storage: Saves new user into SQLite database using AppDbContext
-    - After success -> redirect to Login page
+﻿ @*
+    Register Page - User Registration Component
+    ==========================================
+    Purpose: Handles new user account creation and registration
+    
+    Features:
+    - User registration form with validation
+    - Username, email, and password input fields
+    - Password confirmation for accuracy
+    - Real-time validation using ValidationService
+    - Secure password hashing before storage
 *@
+@page "/signup"
 
 @using JournalApp.Models
 @using JournalApp.Data
@@ -16,24 +20,24 @@
 @inject NavigationManager Nav
 @inject PasswordHasherService PasswordHasher
 
+<!-- Registration Page Container -->
 <div class="login-container">
     <div class="login-card">
-        <!-- Page Title -->
         <h2 class="welcome-text">Welcome to Journal Application</h2>
 
-        <!-- Username input -->
+        <!-- Username Input -->
         <div class="input-group">
             <label>Username</label>
             <input type="text" placeholder="Enter username" @bind="username" />
         </div>
 
-        <!-- Email input -->
+        <!-- Email Input -->
         <div class="input-group">
             <label>Email</label>
             <input type="email" placeholder="Enter email" @bind="email" />
         </div>
 
-        <!-- Password input -->
+        <!-- Password Input -->
         <div class="input-group">
             <label>Password</label>
             <input type="password" placeholder="Enter password" @bind="password" />
@@ -45,21 +49,20 @@
             <input type="password" placeholder="Confirm password" @bind="confirmPassword" />
         </div>
 
-        <!-- Error message display -->
+        <!-- Error Message Display -->
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <p style="color:red; font-size: 0.8rem; margin-bottom: 10px;">@errorMessage</p>
         }
 
-        <!-- Register button triggers HandleRegister() -->
+        <!-- Register Button -->
         <button class="primary-btn" @onclick="HandleRegister">Sign up</button>
 
-        <!-- Link back to login -->
+        <!-- Footer Links -->
         <p class="footer-text">
             Already have an account? <a href="" @onclick="GoToLogin">Login here</a>
         </p>
         
-        <!-- Back to Home -->
         <p class="footer-text">
             <a href="" @onclick="GoToHome">← Back to Home</a>
         </p>
@@ -67,28 +70,26 @@
 </div>
 
 @code {
-    // Bound input values
+    /// Username input field value
     private string username = "";
+    
+    /// Email input field value
     private string email = "";
+    
+    /// Password input field value
     private string password = "";
+    
+    /// Password confirmation input field value
     private string confirmPassword = "";
-
-    // Error message shown in UI when validation fails or DB has issues
+    
+    /// Error message displayed to user on validation or registration failure
     private string errorMessage = "";
 
-    /// <summary>
-    /// Handles user registration with proper validation and password hashing:
-    /// 1) Validate inputs using ValidationService
-    /// 2) Check if email already exists
-    /// 3) Hash password using PasswordHasherService
-    /// 4) Insert user into SQLite database
-    /// 5) Redirect to login
-    /// </summary>
+    /// Handles user registration with validation and password hashing
     private async Task HandleRegister()
     {
         errorMessage = "";
 
-        // 1) Validate username
         var (usernameValid, usernameError) = ValidationService.ValidateUsername(username);
         if (!usernameValid)
         {
@@ -96,7 +97,6 @@
             return;
         }
 
-        // 2) Validate email
         var (emailValid, emailError) = ValidationService.ValidateEmail(email);
         if (!emailValid)
         {
@@ -104,7 +104,6 @@
             return;
         }
 
-        // 3) Validate password
         var (passwordValid, passwordError) = ValidationService.ValidatePassword(password);
         if (!passwordValid)
         {
@@ -112,7 +111,6 @@
             return;
         }
 
-        // 4) Check password confirmation
         if (password != confirmPassword)
         {
             errorMessage = "Passwords do not match!";
@@ -121,7 +119,6 @@
 
         try
         {
-            // 5) Ensure email is unique (prevents duplicates)
             var userExists = await DB.Users.AnyAsync(u => u.Email == email);
             if (userExists)
             {
@@ -129,36 +126,33 @@
                 return;
             }
 
-            // 6) Hash the password for security
             var hashedPassword = PasswordHasher.HashPassword(password);
 
-            // 7) Create User object to save with hashed password
             var newUser = new User
             {
                 Username = username,
                 Email = email,
-                Password = hashedPassword // Store hashed password, not plain text
+                Password = hashedPassword
             };
 
-            // 8) Add and save to SQLite (journal.db)
             DB.Users.Add(newUser);
             await DB.SaveChangesAsync();
 
-            // 9) Redirect after successful registration
             Nav.NavigateTo("/login");
         }
         catch (Exception ex)
         {
-            // Handle any unexpected database/runtime exceptions
             errorMessage = "Database error: " + ex.Message;
         }
     }
-    
+
+    /// Navigates to the login page
     private void GoToLogin()
     {
         Nav.NavigateTo("/login");
     }
     
+    /// Navigates back to the home page
     private void GoToHome()
     {
         Nav.NavigateTo("/");

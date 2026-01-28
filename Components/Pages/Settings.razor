@@ -1,5 +1,17 @@
-﻿@page "/settings"
+﻿@*
+    Settings Page - User Preferences and Account Management
+    =====================================================
+    Purpose: Manage user settings, preferences, and account options
+    
+    Features:
+    - Theme selection (light/dark mode)
+    - PDF export functionality for journal entries
+    - User logout and account management
+    - Persistent settings storage
+*@
+@page "/settings"
 @using JournalApp.Services
+@using JournalApp.Utils
 @using Microsoft.AspNetCore.Components.Forms
 
 @inject ThemeService Theme
@@ -9,6 +21,7 @@
 
 <div class="settings-wrap">
 
+    <!-- Settings Header -->
     <div class="settings-top">
         <button type="button" class="back-link" @onclick="GoBack">← Back</button>
 
@@ -24,14 +37,14 @@
         </div>
     </div>
 
-    <!-- THEME -->
+    <!-- Theme Settings Card -->
     <div class="settings-card">
         <div class="section-head">
             <div>
                 <div class="section-title">Appearance</div>
                 <div class="section-desc">Choose light or dark mode.</div>
             </div>
-            <div class="badge">@Cap(SelectedTheme)</div>
+            <div class="badge">@(string.IsNullOrEmpty(SelectedTheme) ? "" : char.ToUpper(SelectedTheme[0]) + SelectedTheme.Substring(1).ToLower())</div>
         </div>
 
         <InputRadioGroup TValue="string"
@@ -40,6 +53,7 @@
                          ValueChanged="OnThemeChanged"
                          ValueExpression="(() => SelectedTheme)">
 
+            <!-- Light Theme Option -->
             <label class="theme-card">
                 <InputRadio class="theme-radio" Value="@("light")" />
                 <div class="theme-inner">
@@ -55,6 +69,7 @@
                 </div>
             </label>
 
+            <!-- Dark Theme Option -->
             <label class="theme-card">
                 <InputRadio class="theme-radio" Value="@("dark")" />
                 <div class="theme-inner">
@@ -72,15 +87,15 @@
 
         </InputRadioGroup>
 
+        <!-- Theme Info -->
         <div class="tip">Tip: Your choice is saved and stays after restarting the app.</div>
 
-        @* Remove later if you want *@
         <div style="margin-top:10px; font-weight:700;">
             @Theme.CssClass
         </div>
     </div>
 
-    <!-- EXPORT PDF -->
+    <!-- Export PDF Settings Card -->
     <div class="settings-card" style="margin-top: 14px;">
         <div class="section-head">
             <div>
@@ -89,6 +104,7 @@
             </div>
         </div>
 
+        <!-- Date Range Inputs -->
         <div class="export-grid">
             <div class="export-field">
                 <div class="export-label">From</div>
@@ -104,6 +120,7 @@
                 </div>
             </div>
 
+            <!-- Export Actions -->
             <div class="export-actions">
                 <button type="button" class="btn-pink" @onclick="ExportPdf" disabled="@IsExporting">
                     <span class="btn-ico" aria-hidden="true">⬇</span>
@@ -112,6 +129,7 @@
             </div>
         </div>
 
+        <!-- Export Messages -->
         @if (!string.IsNullOrWhiteSpace(ExportMessage))
         {
             <div class="info-box" style="margin-top: 12px; white-space: pre-line;">
@@ -127,7 +145,7 @@
         }
     </div>
 
-    <!-- LOGOUT -->
+    <!-- Account Settings Card -->
     <div class="settings-card" style="margin-top: 14px;">
         <div class="section-head">
             <div>
@@ -136,6 +154,7 @@
             </div>
         </div>
 
+        <!-- Logout Section -->
         <div class="logout-section">
             <button type="button" class="btn-pink logout-btn" @onclick="Logout">
                 <span class="btn-ico" aria-hidden="true">🚪</span>
@@ -147,40 +166,56 @@
 </div>
 
 @code {
+    /// Currently selected theme
     private string SelectedTheme { get; set; } = "light";
 
+    /// Export date range start
     private DateTime FromDate { get; set; } = DateTime.Today.AddDays(-7);
+    
+    /// Export date range end
     private DateTime ToDate { get; set; } = DateTime.Today;
 
+    /// Indicates if PDF export is in progress
     private bool IsExporting { get; set; } = false;
+    
+    /// Export success message
     private string ExportMessage { get; set; } = "";
+    
+    /// Export error message
     private string ExportError { get; set; } = "";
 
+    /// Initializes the settings component and subscribes to theme changes
     protected override void OnInitialized()
     {
         SelectedTheme = Theme.CurrentTheme;
         Theme.OnChange += HandleThemeChanged;
     }
 
+    /// Handles theme change events
     private void HandleThemeChanged()
     {
         SelectedTheme = Theme.CurrentTheme;
         InvokeAsync(StateHasChanged);
     }
 
+    /// Cleanup: Unsubscribes from theme change events
     public void Dispose()
     {
         Theme.OnChange -= HandleThemeChanged;
     }
 
+    /// Navigates back to the dashboard
     private void GoBack() => Nav.NavigateTo("/dashboard");
 
+    /// Handles theme selection change
+    /// <param name="value">New theme value</param>
     private void OnThemeChanged(string value)
     {
         SelectedTheme = value;
         Theme.SetTheme(value);
     }
 
+    /// Exports journal entries to PDF for the specified date range
     private async Task ExportPdf()
     {
         ExportError = "";
@@ -223,12 +258,7 @@
         }
     }
 
-    private static string Cap(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s)) return s;
-        return char.ToUpperInvariant(s[0]) + s.Substring(1);
-    }
-
+    /// Logs out the current user and navigates to login page
     private void Logout()
     {
         UserSession.Logout();
